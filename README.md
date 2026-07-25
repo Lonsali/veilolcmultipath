@@ -33,7 +33,7 @@ This software is provided for **lawful use only**. By downloading, installing, o
 
 ## Downloads
 
-[![Get it on Obtainium](https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png)](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/venterum/veil)
+[<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="60">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/venterum/veil)
 
 Pre-built APKs are also available on the [releases page](https://github.com/venterum/veil/releases).
 
