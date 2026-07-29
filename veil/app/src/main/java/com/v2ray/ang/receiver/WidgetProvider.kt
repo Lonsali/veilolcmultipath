@@ -3,9 +3,11 @@ package com.v2ray.ang.receiver
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -13,18 +15,17 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
-import androidx.glance.action.Action
-import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionSendBroadcast
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.updateAll
+import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
 import androidx.glance.color.DynamicThemeColorProviders
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Row
@@ -36,135 +37,112 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
-import com.v2ray.ang.extension.toast
-import com.v2ray.ang.handler.MmkvManager
-import com.v2ray.ang.handler.SettingsManager
-import com.v2ray.ang.root.RootManager
-import com.v2ray.ang.service.CoreProxyOnlyService
-import com.v2ray.ang.service.CoreRootService
-import com.v2ray.ang.service.CoreVpnService
-import com.v2ray.ang.util.LogUtil
+import com.v2ray.ang.core.CoreServiceManager
 import com.v2ray.ang.util.MessageUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private object WidgetState {
-    private const val KEY_IS_RUNNING = "pref_widget_service_running"
-
-    var isRunning: Boolean
-        get() = MmkvManager.decodeSettingsBool(KEY_IS_RUNNING, false)
-        set(value) {
-            MmkvManager.encodeSettings(KEY_IS_RUNNING, value)
-        }
-}
+// Ключ состояния специально для Jetpack Glance
+val isRunningKey = booleanPreferencesKey("isRunning")
+private const val ACTION_RELOAD = "com.v2ray.ang.widget.RELOAD"
 
 class WidgetProvider : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = VeilWidget
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray,
-    ) {
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-        // MMKV may be stale after process death / reboot; ask the daemon for the
-        // true state.  If the daemon is alive it replies via BROADCAST_ACTION_ACTIVITY
-        // and triggers a re-render through onReceive → refresh → updateAll.
-        MessageUtil.sendMsg2Service(context, AppConfig.MSG_REGISTER_CLIENT, "")
-    }
-
-    override fun onEnabled(context: Context) {
-        super.onEnabled(context)
-        MessageUtil.sendMsg2Service(context, AppConfig.MSG_REGISTER_CLIENT, "")
+        updateAllWidgetsState(context, CoreServiceManager.isRunning())
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action == AppConfig.BROADCAST_ACTION_ACTIVITY) {
-            when (intent.getIntExtra("key", 0)) {
-                AppConfig.MSG_STATE_RUNNING,
-                AppConfig.MSG_STATE_START_SUCCESS -> refresh(context, isRunning = true)
 
-                AppConfig.MSG_STATE_NOT_RUNNING,
-                AppConfig.MSG_STATE_START_FAILURE,
-                AppConfig.MSG_STATE_STOP_SUCCESS -> refresh(context, isRunning = false)
+        when (intent.action) {
+            // 1. Клик по кнопке ВКЛ/ВЫКЛ
+            AppConfig.BROADCAST_ACTION_WIDGET_CLICK -> {
+                val currentlyRunning = CoreServiceManager.isRunning()
+
+                // Мгновенно обновляем UI через официальный State Glance
+                updateAllWidgetsState(context, !currentlyRunning)
+
+                // Вызываем надежный системный запуск из оригинала
+                if (currentlyRunning) {
+                    CoreServiceManager.stopVService(context)
+                } else {
+                    CoreServiceManager.startVServiceFromToggle(context)
+                }
+            }
+
+            // 2. Клик по кнопке ПЕРЕЗАГРУЗКА
+            ACTION_RELOAD -> {
+                updateAllWidgetsState(context, true)
+
+                if (CoreServiceManager.isRunning()) {
+                    MessageUtil.sendMsg2Service(context, AppConfig.MSG_STATE_RESTART, "")
+                } else {
+                    CoreServiceManager.startVServiceFromToggle(context)
+                }
+            }
+
+            // 3. Синхронизация статуса от самого ядра
+            AppConfig.BROADCAST_ACTION_ACTIVITY -> {
+                when (intent.getIntExtra("key", 0)) {
+                    AppConfig.MSG_STATE_RUNNING,
+                    AppConfig.MSG_STATE_START_SUCCESS -> {
+                        updateAllWidgetsState(context, true)
+                    }
+                    AppConfig.MSG_STATE_NOT_RUNNING,
+                    AppConfig.MSG_STATE_START_FAILURE,
+                    AppConfig.MSG_STATE_STOP_SUCCESS -> {
+                        updateAllWidgetsState(context, false)
+                    }
+                }
             }
         }
     }
 
-    private fun refresh(context: Context, isRunning: Boolean) {
-        WidgetState.isRunning = isRunning
+    // Единственный правильный способ заставить Glance перерисовать виджет!
+    private fun updateAllWidgetsState(context: Context, isRunning: Boolean) {
         val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.Default).launch {
-            VeilWidget.updateAll(context)
-            pendingResult.finish()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val manager = GlanceAppWidgetManager(context)
+                val glanceIds = manager.getGlanceIds(VeilWidget::class.java)
+
+                glanceIds.forEach { glanceId ->
+                    // Записываем состояние в кэш Glance
+                    updateAppWidgetState(context, glanceId) { prefs ->
+                        prefs[isRunningKey] = isRunning
+                    }
+                    // Вызываем обновление — теперь Compose увидит изменение и запустит анимацию
+                    VeilWidget.update(context, glanceId)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                try {
+                    pendingResult?.finish()
+                } catch (e: Exception) {
+                    // Игнорируем
+                }
+            }
         }
     }
 }
 
 object VeilWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val isRunning = WidgetState.isRunning
         provideContent {
             GlanceTheme(DynamicThemeColorProviders) {
+                // Подписываемся на изменения состояния!
+                val prefs = currentState<Preferences>()
+                // Берем состояние из виджета, либо (если это первый запуск) у ядра
+                val isRunning = prefs[isRunningKey] ?: CoreServiceManager.isRunning()
+
                 VeilWidgetContent(isRunning = isRunning)
             }
         }
-    }
-}
-
-class ToggleVeilAction : ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters
-    ) {
-        if (WidgetState.isRunning) {
-            MessageUtil.sendMsg2Service(context, AppConfig.MSG_STATE_STOP, "")
-        } else {
-            startVeilService(context)
-        }
-    }
-}
-
-class ReloadVeilAction : ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters
-    ) {
-        if (WidgetState.isRunning) {
-            MessageUtil.sendMsg2Service(context, AppConfig.MSG_STATE_RESTART, "")
-        } else {
-            startVeilService(context)
-        }
-    }
-}
-
-private fun startVeilService(context: Context) {
-    if (MmkvManager.getSelectServer().isNullOrEmpty()) {
-        context.toast(R.string.app_tile_first_use)
-        return
-    }
-    val appContext = context.applicationContext
-    val intent = when {
-        SettingsManager.isRootMode() -> {
-            if (!RootManager.isRootAvailable()) {
-                context.toast(R.string.toast_root_required)
-                return
-            }
-            Intent(appContext, CoreRootService::class.java)
-        }
-
-        SettingsManager.isVpnMode() -> Intent(appContext, CoreVpnService::class.java)
-        else -> Intent(appContext, CoreProxyOnlyService::class.java)
-    }
-    try {
-        ContextCompat.startForegroundService(context, intent)
-    } catch (e: Exception) {
-        LogUtil.e(AppConfig.TAG, "Widget: failed to start service", e)
-        context.toast(e.message ?: e.javaClass.simpleName)
     }
 }
 
@@ -172,6 +150,16 @@ private fun startVeilService(context: Context) {
 private fun VeilWidgetContent(isRunning: Boolean) {
     val context = LocalContext.current
     val colors = GlanceTheme.colors
+
+    val toggleIntent = Intent(context, WidgetProvider::class.java).apply {
+        action = AppConfig.BROADCAST_ACTION_WIDGET_CLICK
+        data = Uri.parse("veil://widget/toggle?state=$isRunning")
+    }
+
+    val reloadIntent = Intent(context, WidgetProvider::class.java).apply {
+        action = ACTION_RELOAD
+        data = Uri.parse("veil://widget/reload?state=$isRunning")
+    }
 
     Box(
         modifier = GlanceModifier
@@ -193,7 +181,7 @@ private fun VeilWidgetContent(isRunning: Boolean) {
                         if (isRunning) colors.error else colors.primary
                     )
                     .cornerRadius(999.dp)
-                    .clickable(actionRunCallback<ToggleVeilAction>()),
+                    .clickable(actionSendBroadcast(toggleIntent)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -217,7 +205,7 @@ private fun VeilWidgetContent(isRunning: Boolean) {
                     .fillMaxHeight()
                     .background(colors.tertiaryContainer)
                     .cornerRadius(999.dp)
-                    .clickable(actionRunCallback<ReloadVeilAction>()),
+                    .clickable(actionSendBroadcast(reloadIntent)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
