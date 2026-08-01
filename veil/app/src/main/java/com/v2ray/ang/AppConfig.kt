@@ -69,6 +69,7 @@ object AppConfig {
     const val PREF_TOOLBAR_POSITION_TOP = "pref_toolbar_position_top"
     const val PREF_BOTTOM_BAR_BORDER = "pref_bottom_bar_border"
     const val PREF_SERVER_CARD_STYLE = "pref_server_card_style"
+    const val PREF_SERVER_SEARCH_BUTTON_ENABLED = "pref_server_search_button_enabled"
     const val PREF_IPV6_ENABLED = "pref_ipv6_enabled"
     const val PREF_PREFER_IPV6 = "pref_prefer_ipv6"
     const val PREF_PROXY_SHARING = "pref_proxy_sharing_enabled"

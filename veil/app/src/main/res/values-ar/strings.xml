@@ -139,7 +139,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">جار التحميل</string>
-    <string name="menu_item_search">بحث</string>
+    <string name="menu_item_search">إظهار/إخفاء البحث</string>
+    <string name="hint_search">بحث</string>
     <string name="menu_item_select_all">تحديد الكل</string>
     <string name="menu_item_invert_selection">عكس الاختيار</string>
     <string name="msg_enter_keywords">أدخل الكلمات الرئيسية</string>

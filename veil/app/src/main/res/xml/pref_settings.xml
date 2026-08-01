@@ -56,6 +56,13 @@
 
         <SwitchPreferenceCompat
             android:widgetLayout="@layout/preference_material_switch"
+            android:defaultValue="true"
+            android:key="pref_server_search_button_enabled"
+            android:summary="@string/summary_pref_server_search_button"
+            android:title="@string/title_pref_server_search_button" />
+
+        <SwitchPreferenceCompat
+            android:widgetLayout="@layout/preference_material_switch"
             android:key="pref_group_all_display"
             android:summary="@string/summary_pref_group_all_display"
             android:title="@string/title_pref_group_all_display" />

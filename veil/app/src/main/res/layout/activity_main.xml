@@ -17,11 +17,31 @@
             android:background="?attr/colorSurface"
             app:elevation="0dp">
 
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
+                android:layout_height="?attr/actionBarSize">
+
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
+
+                <FrameLayout
+                    android:id="@+id/expressive_actions_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end|center_vertical"
+                    android:clipToPadding="false">
+
+                    <androidx.compose.ui.platform.ComposeView
+                        android:id="@+id/composeToolbarActions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent" />
+
+                </FrameLayout>
+
+            </FrameLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/search_input_layout"
@@ -39,7 +59,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:hint="@string/menu_item_search"
+                    android:hint="@string/hint_search"
                     android:inputType="text"
                     android:minHeight="0dp"
                     android:paddingTop="0dp"

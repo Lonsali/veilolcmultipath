@@ -138,7 +138,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">هونی بار ونی بۊ</string>
-    <string name="menu_item_search">پیتینیڌن</string>
+    <string name="menu_item_search">نومایش/نیوئن پیتینیڌن</string>
+    <string name="hint_search">پیتینیڌن</string>
     <string name="menu_item_select_all">پسند پوی</string>
     <string name="menu_item_invert_selection">پسند چواسه</string>
     <string name="msg_enter_keywords">کلمه کلیدی ن بزنین</string>

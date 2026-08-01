@@ -248,7 +248,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">Загрузка…</string>
-    <string name="menu_item_search">Поиск</string>
+    <string name="menu_item_search">Показать/скрыть поиск</string>
+    <string name="hint_search">Поиск</string>
     <string name="menu_item_select_all">Выбрать все</string>
     <string name="menu_item_invert_selection">Инвертировать выбор</string>
     <string name="msg_enter_keywords">Введите ключевое слово</string>
@@ -497,6 +498,10 @@
     <string
         name="summary_pref_server_card_style"
     >Компактная карточка с меню. Отключите для классического вида с кнопками действий</string>
+    <string name="title_pref_server_search_button">Кнопка поиска</string>
+    <string
+        name="summary_pref_server_search_button"
+    >Показывать значок поиска на панели списка серверов. Поиск остаётся доступным в дополнительном меню.</string>
 
     <string name="title_pref_group_all_display">Общая вкладка групп</string>
     <string

@@ -136,7 +136,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">Đang tải...</string>
-    <string name="menu_item_search">Tìm kiếm</string>
+    <string name="menu_item_search">Hiện/ẩn tìm kiếm</string>
+    <string name="hint_search">Tìm kiếm</string>
     <string name="menu_item_select_all">Chọn tất cả</string>
     <string name="menu_item_invert_selection">Đảo chọn</string>
     <string name="msg_enter_keywords">Nhập từ khoá</string>

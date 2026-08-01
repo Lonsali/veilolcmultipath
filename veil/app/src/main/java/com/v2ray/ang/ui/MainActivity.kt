@@ -64,7 +64,13 @@ import com.v2ray.ang.handler.SettingsManager.MainUiMode
 import com.v2ray.ang.handler.SpeedtestManager
 import com.v2ray.ang.handler.SubscriptionUpdater
 import com.v2ray.ang.service.CoreTunToggleService
+import com.v2ray.ang.ui.compose.AppTheme
+import com.v2ray.ang.ui.compose.ExpressiveToolbarActions
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.v2ray.ang.util.LogUtil
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.v2ray.ang.util.Utils
 import com.v2ray.ang.viewmodel.MainViewModel
 import kotlinx.coroutines.Dispatchers
@@ -89,6 +95,7 @@ class MainActivity : HelperBaseActivity() {
     private var uptimeJob: Job? = null
     private var currentUiMode: MainUiMode = MainUiMode.EXPRESSIVE
     private var toolbarAtTop = false
+    private var searchButtonEnabled by mutableStateOf(true)
     private var currentSnackbar: com.google.android.material.snackbar.Snackbar? = null
     private val widthAnimations = WeakHashMap<View, SpringAnimation>()
 
@@ -124,6 +131,23 @@ class MainActivity : HelperBaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setupToolbar(binding.toolbar, false, getString(R.string.title_server))
+
+        // setup Compose expressive toolbar buttons
+        binding.composeToolbarActions.apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                AppTheme {
+                    ExpressiveToolbarActions(
+                        onFilterClick = { toggleSearch() },
+                        onShowImportMenu = { anchor -> showImportPopupMenu(anchor) },
+                        onShowOverflowMenu = { anchor -> showOverflowPopupMenu(anchor) },
+                        showSearchButton = searchButtonEnabled,
+                    )
+                }
+            }
+        }
 
         // setup viewpager and tablayout
         groupPagerAdapter = GroupPagerAdapter(this, emptyList())
@@ -870,6 +894,13 @@ class MainActivity : HelperBaseActivity() {
         applyMainUiMode()
         setSelectedServerName()
         applyBottomBarBorder()
+        val enabled = MmkvManager.decodeSettingsBool(AppConfig.PREF_SERVER_SEARCH_BUTTON_ENABLED, true)
+        if (enabled != searchButtonEnabled) {
+            searchButtonEnabled = enabled
+            if (!enabled && binding.searchInputLayout.visibility == View.VISIBLE) {
+                toggleSearch()
+            }
+        }
     }
 
     override fun onPause() {
@@ -877,8 +908,7 @@ class MainActivity : HelperBaseActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return super.onCreateOptionsMenu(menu)
+        return false
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
@@ -1004,6 +1034,42 @@ class MainActivity : HelperBaseActivity() {
         }
 
         else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun showImportPopupMenu(anchor: View) {
+        val popup = android.widget.PopupMenu(this, anchor)
+        popup.menu.add(0, R.id.import_qrcode, 0, R.string.menu_item_import_config_qrcode)
+        popup.menu.add(0, R.id.import_clipboard, 0, R.string.menu_item_import_config_clipboard)
+        popup.menu.add(0, R.id.import_local, 0, R.string.menu_item_import_config_local)
+        popup.menu.add(0, R.id.import_manually_policy_group, 0, R.string.menu_item_import_config_policy_group)
+        popup.menu.add(0, R.id.import_manually_proxy_chain, 0, R.string.menu_item_import_config_proxy_chain)
+        popup.menu.add(0, R.id.import_manually_vmess, 0, R.string.menu_item_import_config_manually_vmess)
+        popup.menu.add(0, R.id.import_manually_vless, 0, R.string.menu_item_import_config_manually_vless)
+        popup.menu.add(0, R.id.import_manually_ss, 0, R.string.menu_item_import_config_manually_ss)
+        popup.menu.add(0, R.id.import_manually_socks, 0, R.string.menu_item_import_config_manually_socks)
+        popup.menu.add(0, R.id.import_manually_http, 0, R.string.menu_item_import_config_manually_http)
+        popup.menu.add(0, R.id.import_manually_trojan, 0, R.string.menu_item_import_config_manually_trojan)
+        popup.menu.add(0, R.id.import_manually_wireguard, 0, R.string.menu_item_import_config_manually_wireguard)
+        popup.menu.add(0, R.id.import_manually_hysteria2, 0, R.string.menu_item_import_config_manually_hysteria2)
+        popup.menu.add(0, R.id.import_manually_olcrtc, 0, R.string.menu_item_import_config_manually_olcrtc)
+        popup.setOnMenuItemClickListener { item -> onOptionsItemSelected(item) }
+        popup.show()
+    }
+
+    private fun showOverflowPopupMenu(anchor: View) {
+        val popup = android.widget.PopupMenu(this, anchor)
+        popup.menu.add(0, R.id.search_view, 0, R.string.menu_item_search)
+        popup.menu.add(0, R.id.service_restart, 0, R.string.title_service_restart)
+        popup.menu.add(0, R.id.del_all_config, 0, R.string.title_del_all_config)
+        popup.menu.add(0, R.id.del_duplicate_config, 0, R.string.title_del_duplicate_config)
+        popup.menu.add(0, R.id.del_invalid_config, 0, R.string.title_del_invalid_config)
+        popup.menu.add(0, R.id.export_all, 0, R.string.title_export_all)
+        popup.menu.add(0, R.id.real_ping_all, 0, R.string.title_real_ping_all_server)
+        popup.menu.add(0, R.id.sort_by_test_results, 0, R.string.title_sort_by_test_results)
+        popup.menu.add(0, R.id.locate_selected_config, 0, R.string.title_locate_selected_config)
+        popup.menu.add(0, R.id.sub_update, 0, R.string.title_sub_update)
+        popup.setOnMenuItemClickListener { item -> onOptionsItemSelected(item) }
+        popup.show()
     }
 
     private fun toggleSearch() {

@@ -138,7 +138,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">লোড হচ্ছে</string>
-    <string name="menu_item_search">অনুসন্ধান করুন</string>
+    <string name="menu_item_search">অনুসন্ধান দেখান/লুকান</string>
+    <string name="hint_search">অনুসন্ধান করুন</string>
     <string name="menu_item_select_all">সবকিছু নির্বাচন করুন</string>
     <string name="menu_item_invert_selection">Invert selection</string>
     <string name="msg_enter_keywords">কিওয়ার্ড লিখুন</string>

@@ -25,7 +25,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:hint="@string/menu_item_search"
+                android:hint="@string/hint_search"
                 android:inputType="text"
                 android:minHeight="0dp"
                 android:paddingTop="0dp"

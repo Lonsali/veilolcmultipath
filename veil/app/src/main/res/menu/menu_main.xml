@@ -5,11 +5,11 @@
         android:id="@+id/search_view"
         android:icon="@drawable/ic_outline_filter_alt_24"
         android:title="@string/menu_item_search"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:icon="@drawable/ic_add_24dp"
         android:title="@string/menu_item_add_config"
-        app:showAsAction="ifRoom">
+        app:showAsAction="never">
         <menu>
             <item
                 android:id="@+id/import_qrcode"

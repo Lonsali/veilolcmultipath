@@ -137,7 +137,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">載入</string>
-    <string name="menu_item_search">搜尋</string>
+    <string name="menu_item_search">顯示/隱藏搜尋</string>
+    <string name="hint_search">搜尋</string>
     <string name="menu_item_select_all">全選</string>
     <string name="menu_item_invert_selection">反選</string>
     <string name="msg_enter_keywords">輸入關鍵字</string>

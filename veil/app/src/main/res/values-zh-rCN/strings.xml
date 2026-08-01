@@ -139,7 +139,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">正在加载</string>
-    <string name="menu_item_search">搜索</string>
+    <string name="menu_item_search">显示/隐藏搜索</string>
+    <string name="hint_search">搜索</string>
     <string name="menu_item_select_all">全选</string>
     <string name="menu_item_invert_selection">反选</string>
     <string name="msg_enter_keywords">输入关键字</string>

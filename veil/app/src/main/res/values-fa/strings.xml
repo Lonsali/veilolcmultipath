@@ -136,7 +136,8 @@
 
     <!-- PerAppProxyActivity -->
     <string name="msg_dialog_progress">بارگذاری</string>
-    <string name="menu_item_search">جستجو</string>
+    <string name="menu_item_search">نمایش/پنهان کردن جستجو</string>
+    <string name="hint_search">جستجو</string>
     <string name="menu_item_select_all">انتخاب همه</string>
     <string name="menu_item_invert_selection">Invert selection</string>
     <string name="msg_enter_keywords">کلمه ی کلیدی را وارد نمایید</string>
