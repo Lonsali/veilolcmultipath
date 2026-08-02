@@ -114,13 +114,6 @@
             android:summary="@string/summary_pref_google_sans"
             android:title="@string/title_pref_google_sans" />
 
-        <SwitchPreferenceCompat
-            android:widgetLayout="@layout/preference_material_switch"
-            android:defaultValue="false"
-            android:key="pref_toolbar_position_top"
-            android:summary="@string/summary_pref_toolbar_position_top"
-            android:title="@string/title_pref_toolbar_position_top" />
-
         <Preference
             android:key="pref_app_icon"
             android:summary="@string/summary_app_icon"

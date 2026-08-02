@@ -516,23 +516,6 @@ object SettingsManager {
     }
 
     /**
-     * Returns the selected main screen UI mode.
-     * The Panel mode selector is hidden for now, so this always returns the bottom bar
-     * ([MainUiMode.EXPRESSIVE]). The Panel code path is kept intact for future re-enabling.
-     */
-    fun getMainUiMode(): MainUiMode {
-        return MainUiMode.EXPRESSIVE
-    }
-
-    /**
-     * Returns whether the expressive toolbar should be placed at the top
-     * of the main screen (above the server list).
-     */
-    fun isToolbarAtTop(): Boolean {
-        return MmkvManager.decodeSettingsBool(AppConfig.PREF_TOOLBAR_POSITION_TOP, false) == true
-    }
-
-    /**
      * Returns the server card display style.
      * "classic" shows all action buttons; "new" shows a compact card with
      * overflow menu and country flag extraction.
@@ -540,18 +523,6 @@ object SettingsManager {
      */
     fun getServerCardStyle(): String {
         return if (MmkvManager.decodeSettingsBool(AppConfig.PREF_SERVER_CARD_STYLE, true)) "new" else "classic"
-    }
-
-    /**
-     * Main screen UI mode.
-     */
-    enum class MainUiMode(val value: String) {
-        EXPRESSIVE("expressive"),
-        BIG_BUTTON("big_button");
-
-        companion object {
-            fun fromValue(value: String?) = entries.find { it.value == value } ?: EXPRESSIVE
-        }
     }
 
     /**

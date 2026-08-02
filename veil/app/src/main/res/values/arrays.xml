@@ -223,16 +223,6 @@
         <item>2</item>
     </string-array>
 
-    <string-array name="main_ui_mode">
-        <item>@string/title_main_ui_mode_expressive</item>
-        <item>@string/title_main_ui_mode_big_button</item>
-    </string-array>
-
-    <string-array name="main_ui_mode_value" translatable="false">
-        <item>expressive</item>
-        <item>big_button</item>
-    </string-array>
-
     <string-array name="group_all_mode_entries">
         <item>@string/entry_group_all_mode_1</item>
         <item>@string/entry_group_all_mode_2</item>

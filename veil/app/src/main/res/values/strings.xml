@@ -318,21 +318,6 @@
         name="summary_pref_speed_lock_screen"
     >Keep the live update visible on the lock screen instead of hiding its content.</string>
 
-    <string name="title_pref_main_ui_mode">Main screen layout</string>
-    <string
-        name="summary_pref_main_ui_mode"
-    >Choose the style of the main screen control panel.</string>
-    <string name="title_main_ui_mode_expressive">Bottom bar</string>
-    <string name="title_main_ui_mode_big_button">Panel</string>
-
-    <string name="title_pref_toolbar_position_top">Toolbar at top</string>
-    <string
-        name="summary_pref_toolbar_position_top"
-    >Place the expressive toolbar above the server list instead of at the bottom.</string>
-    <string name="title_pref_bottom_bar_border">Accent border</string>
-    <string
-        name="summary_pref_bottom_bar_border"
-    >Outline the bottom bar with a solid accent-color border.</string>
     <string name="title_pref_server_search_button">Show search button</string>
     <string
         name="summary_pref_server_search_button"
@@ -716,7 +701,6 @@
         name="connection_connected"
     >Connected, tap to check connection</string>
     <string name="connection_not_connected">Not connected</string>
-    <string name="connection_ip_format">IP: %1$s</string>
     <string
         name="connection_runing_task_left"
     >Number of running test tasks: %s</string>

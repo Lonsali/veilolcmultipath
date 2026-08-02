@@ -571,18 +571,6 @@
     >Маршрутизировать устройства Wi-Fi-точки и USB-модема через VPN</string>
     <string name="title_language">Язык</string>
     <string name="title_ui_settings">Настройки интерфейса</string>
-    <string name="title_pref_main_ui_mode">Раскладка главного экрана</string>
-    <string
-        name="summary_pref_main_ui_mode"
-    >Выберите стиль панели управления на главном экране.</string>
-    <string name="title_main_ui_mode_expressive">Нижняя панель</string>
-    <string name="title_main_ui_mode_big_button">Панель</string>
-    <string name="title_pref_toolbar_position_top">Тулбар сверху</string>
-    <string
-        name="summary_pref_toolbar_position_top"
-    >Разместить выразительную панель над списком серверов вместо нижнего края.</string>
-    <string name="title_pref_bottom_bar_border">Акцентная рамка панели</string>
-    <string name="summary_pref_bottom_bar_border">Обводить нижнюю панель сплошной рамкой акцентного цвета.</string>
     <string name="title_pref_dynamic_color">Динамические цвета</string>
     <string
         name="summary_pref_dynamic_color"
@@ -740,7 +728,6 @@
     <string name="connection_connected">Соединено, нажмите для проверки</string>
     <string name="connection_not_connected">Нет соединения</string>
     <string name="connection_runing_task_left">Запущено проверок: %s</string>
-    <string name="connection_ip_format">IP: %1$s</string>
 
     <string name="import_subscription_success">Подписка импортирована</string>
     <string

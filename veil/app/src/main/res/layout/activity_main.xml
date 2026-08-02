@@ -91,11 +91,6 @@
                         android:visibility="invisible"
                         app:indicatorColor="?attr/colorPrimary" />
 
-                    <FrameLayout
-                        android:id="@+id/top_control_container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
                     <com.google.android.material.tabs.TabLayout
                         android:id="@+id/tab_group"
                         style="@style/Widget.App.TabLayout.Expressive"

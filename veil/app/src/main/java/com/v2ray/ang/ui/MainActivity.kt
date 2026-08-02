@@ -1,8 +1,6 @@
 package com.v2ray.ang.ui
 
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.PorterDuff
 import android.net.Uri
 import android.net.VpnService
 import android.os.Build
@@ -10,16 +8,9 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.ImageView
-import java.util.WeakHashMap
-import androidx.dynamicanimation.animation.DynamicAnimation
-import androidx.dynamicanimation.animation.FloatPropertyCompat
-import androidx.dynamicanimation.animation.SpringAnimation
-import androidx.dynamicanimation.animation.SpringForce
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -35,7 +26,6 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.transition.MaterialFade
 import androidx.transition.TransitionManager
@@ -43,8 +33,6 @@ import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.CoreServiceManager
 import com.v2ray.ang.databinding.ActivityMainBinding
-import com.v2ray.ang.databinding.MainUiBigButtonBinding
-import com.v2ray.ang.databinding.MainUiExpressiveBinding
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.enums.PermissionType
 import com.v2ray.ang.extension.finishWithMaterialTransition
@@ -60,12 +48,13 @@ import com.v2ray.ang.handler.AngConfigManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.handler.SettingsManager
-import com.v2ray.ang.handler.SettingsManager.MainUiMode
 import com.v2ray.ang.handler.SpeedtestManager
 import com.v2ray.ang.handler.SubscriptionUpdater
 import com.v2ray.ang.service.CoreTunToggleService
 import com.v2ray.ang.ui.compose.AppTheme
 import com.v2ray.ang.ui.compose.ExpressiveToolbarActions
+import com.v2ray.ang.ui.compose.ExpressiveBottomBar
+import com.v2ray.ang.ui.compose.ExpressiveBottomBarState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -85,19 +74,14 @@ class MainActivity : HelperBaseActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private var expressiveBinding: MainUiExpressiveBinding? = null
-    private var bigButtonBinding: MainUiBigButtonBinding? = null
-
     val mainViewModel: MainViewModel by viewModels()
     private lateinit var groupPagerAdapter: GroupPagerAdapter
     private var tabMediator: TabLayoutMediator? = null
     private var connectedAt: Long = 0L
     private var uptimeJob: Job? = null
-    private var currentUiMode: MainUiMode = MainUiMode.EXPRESSIVE
-    private var toolbarAtTop = false
     private var searchButtonEnabled by mutableStateOf(true)
+    private var bottomBarState by mutableStateOf(ExpressiveBottomBarState())
     private var currentSnackbar: com.google.android.material.snackbar.Snackbar? = null
-    private val widthAnimations = WeakHashMap<View, SpringAnimation>()
 
     /**
      * MainActivity is the root of the app's task. The system already moves the
@@ -110,6 +94,8 @@ class MainActivity : HelperBaseActivity() {
     private val requestVpnPermission = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == RESULT_OK) {
             startV2Ray()
+        } else {
+            applyRunningState(isLoading = false, isRunning = false)
         }
     }
     private val requestTunVpnPermission = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -165,7 +151,7 @@ class MainActivity : HelperBaseActivity() {
             binding.etSearch.text?.clear()
         }
 
-        applyMainUiMode()
+        bindBottomBar()
 
         setupGroupTab()
         setupViewModel()
@@ -230,101 +216,25 @@ class MainActivity : HelperBaseActivity() {
         }
     }
 
-    /**
-     * Inflates the UI controls that depend on the selected main screen layout mode.
-     * The mode is read from MMKV and can be changed from Settings -> UI.
-     */
-    private fun applyMainUiMode() {
-        val newMode = SettingsManager.getMainUiMode()
-        val newToolbarAtTop = SettingsManager.isToolbarAtTop()
-        if (newMode == currentUiMode && toolbarAtTop == newToolbarAtTop &&
-            (expressiveBinding != null || bigButtonBinding != null)
-        ) {
-            return
+    private fun bindBottomBar() {
+        val composeView = androidx.compose.ui.platform.ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                AppTheme {
+                    ExpressiveBottomBar(
+                        state = bottomBarState,
+                        onStartStop = ::handleFabAction,
+                        onModeSelector = ::showModeSelector,
+                        onTunToggle = ::handleTunToggle,
+                        onTest = ::handleLayoutTestClick,
+                        onConnectionInfo = ::showConnectionInfoSheet,
+                    )
+                }
+            }
         }
-        currentUiMode = newMode
-        toolbarAtTop = newToolbarAtTop
-
-        // Clean up previous bindings if the mode is being reapplied
-        expressiveBinding = null
-        bigButtonBinding = null
-        binding.topControlContainer.removeAllViews()
         binding.bottomControlContainer.removeAllViews()
-
-        when (newMode) {
-            MainUiMode.EXPRESSIVE -> bindExpressiveUi()
-            MainUiMode.BIG_BUTTON -> bindBigButtonUi()
-        }
-
-        // Restore the current running state so the new controls reflect reality.
-        applyRunningState(false, mainViewModel.isRunning.value == true)
-    }
-
-    private fun bindExpressiveUi() {
-        val container = if (toolbarAtTop) binding.topControlContainer else binding.bottomControlContainer
-        expressiveBinding = MainUiExpressiveBinding.inflate(layoutInflater, container, true)
-
-        expressiveBinding?.apply {
-            val startTranslation = if (toolbarAtTop) -64f else 64f
-            bottomBar.alpha = 0f
-            bottomBar.translationY = startTranslation
-            bottomBar.scaleX = 0.96f
-            bottomBar.scaleY = 0.96f
-            springAnimate(bottomBar, SpringAnimation.ALPHA, 1f)
-            springAnimate(bottomBar, SpringAnimation.TRANSLATION_Y, 0f)
-            springAnimate(bottomBar, SpringAnimation.SCALE_X, 1f)
-            springAnimate(bottomBar, SpringAnimation.SCALE_Y, 1f)
-
-            // Adjust padding for top position
-            if (toolbarAtTop) {
-                val px12 = (12 * resources.displayMetrics.density).toInt()
-                bottomBar.setPadding(bottomBar.paddingLeft, px12, bottomBar.paddingRight, 0)
-            }
-
-            applyExpressivePressGroup(btnFab, btnTunToggle)
-
-            btnFab.setOnClickListener {
-                it.performMediumHapticFeedback()
-                handleFabAction()
-            }
-            btnFab.setOnLongClickListener {
-                it.performMediumHapticFeedback()
-                showModeSelector()
-                true
-            }
-            btnTunToggle.setOnClickListener {
-                it.performMediumHapticFeedback()
-                handleTunToggle()
-            }
-            layoutTest.setOnClickListener {
-                it.performLightHapticFeedback()
-                handleLayoutTestClick()
-            }
-            layoutTest.setOnLongClickListener {
-                it.performMediumHapticFeedback()
-                showConnectionInfoSheet()
-                true
-            }
-
-            setSelectedServerName()
-            applyBottomBarBorder()
-        }
-    }
-
-    /**
-     * Applies an optional accent-colored outline to the bottom bar status pill,
-     * gated by [AppConfig.PREF_BOTTOM_BAR_BORDER] (default on). When disabled the
-     * pill keeps its plain filled look.
-     */
-    private fun applyBottomBarBorder() {
-        val eb = expressiveBinding ?: return
-        val enabled = MmkvManager.decodeSettingsBool(AppConfig.PREF_BOTTOM_BAR_BORDER, false)
-        if (enabled) {
-            eb.layoutTest.strokeWidth = (2 * resources.displayMetrics.density).toInt()
-            eb.layoutTest.strokeColor = MaterialColors.getColor(eb.layoutTest, android.R.attr.colorPrimary)
-        } else {
-            eb.layoutTest.strokeWidth = 0
-        }
+        binding.bottomControlContainer.addView(composeView)
+        setSelectedServerName()
     }
 
     /**
@@ -335,116 +245,6 @@ class MainActivity : HelperBaseActivity() {
         setSelectedServerName()
     }
 
-    private fun bindBigButtonUi() {
-        bigButtonBinding = MainUiBigButtonBinding.inflate(layoutInflater, binding.topControlContainer, true)
-        bigButtonBinding?.apply {
-            bigButtonContainer.alpha = 0f
-            bigButtonContainer.scaleX = 0.96f
-            bigButtonContainer.scaleY = 0.96f
-            bigButtonContainer.animate()
-                .alpha(1f)
-                .scaleX(1f)
-                .scaleY(1f)
-                .setDuration(350)
-                .setInterpolator(android.view.animation.DecelerateInterpolator())
-                .start()
-
-            applyPressFeedback(btnBigConnect, 0.92f)
-            applyPressFeedback(layoutBigTun, 0.97f)
-
-            btnBigConnect.setOnClickListener {
-                it.performMediumHapticFeedback()
-                handleFabAction()
-            }
-            btnBigConnect.setOnLongClickListener {
-                it.performMediumHapticFeedback()
-                showModeSelector()
-                true
-            }
-            layoutBigTun.setOnClickListener {
-                it.performMediumHapticFeedback()
-                handleTunToggle()
-            }
-
-            setSelectedServerName()
-        }
-    }
-
-    private fun applyPressFeedback(view: View, scale: Float) {
-        val card = view as? com.google.android.material.card.MaterialCardView
-        val baseElevation = card?.elevation ?: view.translationZ
-        val pressElevation = baseElevation * 0.35f
-
-        view.setOnTouchListener { v, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    springAnimate(v, SpringAnimation.SCALE_X, scale, SpringForce.STIFFNESS_HIGH)
-                    springAnimate(v, SpringAnimation.SCALE_Y, scale, SpringForce.STIFFNESS_HIGH)
-                    springAnimate(v, SpringAnimation.TRANSLATION_Z, pressElevation, SpringForce.STIFFNESS_HIGH)
-                }
-                MotionEvent.ACTION_UP,
-                MotionEvent.ACTION_CANCEL -> {
-                    springAnimate(v, SpringAnimation.SCALE_X, 1f, SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-                    springAnimate(v, SpringAnimation.SCALE_Y, 1f, SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-                    springAnimate(v, SpringAnimation.TRANSLATION_Z, baseElevation, SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-                }
-            }
-            false
-        }
-    }
-
-    /**
-     * Coordinated M3 Expressive-style press feedback for the expressive bottom bar.
-     *
-     * The touched button physically changes its layout width, so a circle becomes
-     * a pill and a pill becomes wider. The weighted status pill shrinks/grows
-     * automatically, so neighbours move together with the spring. No height or
-     * elevation change.
-     */
-    private fun applyExpressivePressGroup(fab: View, tun: View) {
-        val density = resources.displayMetrics.density
-
-        // Original widths from XML.
-        val fabWidthDp = 84
-        val tunWidthDp = 52
-
-        // Target widths on press: circle becomes pill, pill becomes wider.
-        val fabPressWidthDp = 94
-        val tunPressWidthDp = 66
-
-        // Expressive spatial springs.
-        val pressStiffness = 600f
-        val releaseStiffness = 400f
-        val releaseDamping = 0.4f
-
-        val fabWidthPx = fabWidthDp * density
-        val tunWidthPx = tunWidthDp * density
-        val fabPressWidthPx = fabPressWidthDp * density
-        val tunPressWidthPx = tunPressWidthDp * density
-
-        fun onPress(view: View) {
-            when (view) {
-                fab -> springAnimateWidth(fab, fabPressWidthPx, pressStiffness)
-                tun -> springAnimateWidth(tun, tunPressWidthPx, pressStiffness)
-            }
-        }
-
-        fun onRelease() {
-            springAnimateWidth(fab, fabWidthPx, releaseStiffness, releaseDamping)
-            springAnimateWidth(tun, tunWidthPx, releaseStiffness, releaseDamping)
-        }
-
-        listOf(fab, tun).forEach { view ->
-            view.setOnTouchListener { v, event ->
-                when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> onPress(v)
-                    MotionEvent.ACTION_UP,
-                    MotionEvent.ACTION_CANCEL -> onRelease()
-                }
-                false
-            }
-        }
-    }
 
     /**
      * Applies the app font to the navigation header title and the toolbar title.
@@ -532,13 +332,11 @@ class MainActivity : HelperBaseActivity() {
     }
 
     private fun setTestStateText(content: String?) {
-        expressiveBinding?.tvTestState?.text = content
-        bigButtonBinding?.tvBigStatus?.text = content
+        bottomBarState = bottomBarState.copy(status = content.orEmpty())
     }
 
     private fun setSpeedText(up: String, down: String) {
-        expressiveBinding?.tvSpeedUp?.text = "↑ $up"
-        expressiveBinding?.tvSpeedDown?.text = "↓ $down"
+        bottomBarState = bottomBarState.copy(uploadSpeed = up, downloadSpeed = down)
     }
 
     /**
@@ -549,22 +347,12 @@ class MainActivity : HelperBaseActivity() {
     fun setSelectedServerName() {
         val guid = MmkvManager.getSelectServer()
         val remarks = if (guid.isNullOrEmpty()) null else MmkvManager.decodeServerConfig(guid)?.remarks
-        expressiveBinding?.tvServerName?.let { tv ->
-            tv.text = remarks
-            tv.isVisible = !remarks.isNullOrEmpty()
-        }
-        bigButtonBinding?.tvBigServerName?.let { tv ->
-            tv.text = remarks
-            tv.isVisible = !remarks.isNullOrEmpty()
-        }
+        bottomBarState = bottomBarState.copy(serverName = remarks)
     }
 
     private fun setConnectionIpText(ip: String?) {
         val compressedIp = com.v2ray.ang.util.IPv6Util.compressIPv6(ip, maxDisplayLength = 26)
-        expressiveBinding?.tvConnectionIp?.text = compressedIp
-        expressiveBinding?.tvConnectionIp?.isVisible = !compressedIp.isNullOrEmpty()
-        bigButtonBinding?.tvBigIp?.text = getString(R.string.connection_ip_format, compressedIp.orEmpty())
-        bigButtonBinding?.tvBigIp?.isVisible = !compressedIp.isNullOrEmpty()
+        bottomBarState = bottomBarState.copy(connectionIp = compressedIp)
     }
 
     private fun showOrUpdateSnackbar(message: String) {
@@ -654,6 +442,7 @@ class MainActivity : HelperBaseActivity() {
     private fun startV2Ray() {
         if (MmkvManager.getSelectServer().isNullOrEmpty()) {
             toast(R.string.title_file_chooser)
+            applyRunningState(isLoading = false, isRunning = false)
             return
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN
@@ -699,15 +488,20 @@ class MainActivity : HelperBaseActivity() {
                 } else {
                     String.format("%02d:%02d", minutes, seconds)
                 }
-                expressiveBinding?.tvUptime?.text = uptimeText
+                bottomBarState = bottomBarState.copy(uptime = uptimeText)
                 delay(1000)
             }
         }
     }
 
     private fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
-        applyRunningStateToExpressive(isLoading, isRunning)
-        applyRunningStateToBigButton(isLoading, isRunning)
+        bottomBarState = bottomBarState.copy(
+            isLoading = isLoading,
+            isRunning = isRunning,
+            showSpeed = isRunning && !isLoading &&
+                MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_TOOLBAR_ENABLED) == true,
+            connectionIp = if (isRunning && !isLoading) bottomBarState.connectionIp else null,
+        )
 
         if (isRunning) {
             setTestState(getString(R.string.connection_connected))
@@ -721,50 +515,6 @@ class MainActivity : HelperBaseActivity() {
             if (SettingsManager.isTunEnabled()) {
                 stopTunService()
             }
-        }
-    }
-
-    private fun applyRunningStateToExpressive(isLoading: Boolean, isRunning: Boolean) {
-        val eb = expressiveBinding ?: return
-        if (isLoading) {
-            eb.layoutSpeed.isVisible = false
-            eb.tvConnectionIp.isVisible = false
-            eb.ivFabIcon.setImageDrawable(null)
-            eb.loadingIndicator.show()
-            eb.btnTunToggle.isVisible = false
-            return
-        }
-
-        eb.loadingIndicator.hide()
-        if (isRunning) {
-            eb.ivFabIcon.setImageResource(R.drawable.ic_stop_outline_24dp)
-            animateCardColor(
-                eb.btnFab,
-                MaterialColors.getColor(eb.btnFab, com.google.android.material.R.attr.colorPrimaryContainer),
-                MaterialColors.getColor(eb.btnFab, android.R.attr.colorPrimary)
-            )
-            eb.ivFabIcon.setColorFilter(
-                MaterialColors.getColor(eb.ivFabIcon, com.google.android.material.R.attr.colorOnPrimary),
-                PorterDuff.Mode.SRC_IN
-            )
-            eb.btnFab.contentDescription = getString(R.string.action_stop_service)
-            eb.layoutTest.isFocusable = true
-            eb.layoutSpeed.isVisible = MmkvManager.decodeSettingsBool(AppConfig.PREF_SPEED_TOOLBAR_ENABLED) == true
-        } else {
-            eb.ivFabIcon.setImageResource(R.drawable.ic_play_outline_24dp)
-            animateCardColor(
-                eb.btnFab,
-                MaterialColors.getColor(eb.btnFab, android.R.attr.colorPrimary),
-                MaterialColors.getColor(eb.btnFab, com.google.android.material.R.attr.colorPrimaryContainer)
-            )
-            eb.ivFabIcon.setColorFilter(
-                MaterialColors.getColor(eb.ivFabIcon, com.google.android.material.R.attr.colorOnPrimaryContainer),
-                PorterDuff.Mode.SRC_IN
-            )
-            eb.btnFab.contentDescription = getString(R.string.tasker_start_service)
-            eb.layoutTest.isFocusable = false
-            eb.layoutSpeed.isVisible = false
-            eb.tvConnectionIp.isVisible = false
         }
     }
 
@@ -842,58 +592,10 @@ class MainActivity : HelperBaseActivity() {
         dialog.show()
     }
 
-    private fun applyRunningStateToBigButton(isLoading: Boolean, isRunning: Boolean) {
-        val bb = bigButtonBinding ?: return
-        bb.loadingIndicator.isVisible = isLoading
-        if (isLoading) {
-            bb.ivBigIcon.setImageDrawable(null)
-            animateCardColor(
-                bb.btnBigConnect,
-                MaterialColors.getColor(bb.btnBigConnect, com.google.android.material.R.attr.colorSurfaceContainerHighest),
-                MaterialColors.getColor(bb.btnBigConnect, com.google.android.material.R.attr.colorPrimaryContainer)
-            )
-            bb.layoutBigTun.isVisible = false
-            bb.tvBigIp.isVisible = false
-            return
-        }
-
-        if (isRunning) {
-            bb.ivBigIcon.setImageResource(R.drawable.ic_stop_outline_24dp)
-            animateCardColor(
-                bb.btnBigConnect,
-                MaterialColors.getColor(bb.btnBigConnect, com.google.android.material.R.attr.colorSurfaceContainerHighest),
-                MaterialColors.getColor(bb.btnBigConnect, com.google.android.material.R.attr.colorPrimaryContainer)
-            )
-            animateIconColor(
-                bb.ivBigIcon,
-                MaterialColors.getColor(bb.ivBigIcon, com.google.android.material.R.attr.colorOnSurfaceVariant),
-                MaterialColors.getColor(bb.ivBigIcon, com.google.android.material.R.attr.colorOnPrimaryContainer)
-            )
-            bb.btnBigConnect.contentDescription = getString(R.string.action_stop_service)
-            bb.layoutBigTun.isVisible = SettingsManager.isProxyTunMode()
-        } else {
-            bb.ivBigIcon.setImageResource(R.drawable.ic_play_outline_24dp)
-            animateCardColor(
-                bb.btnBigConnect,
-                MaterialColors.getColor(bb.btnBigConnect, com.google.android.material.R.attr.colorPrimaryContainer),
-                MaterialColors.getColor(bb.btnBigConnect, com.google.android.material.R.attr.colorSurfaceContainerHighest)
-            )
-            animateIconColor(
-                bb.ivBigIcon,
-                MaterialColors.getColor(bb.ivBigIcon, com.google.android.material.R.attr.colorOnPrimaryContainer),
-                MaterialColors.getColor(bb.ivBigIcon, com.google.android.material.R.attr.colorOnSurfaceVariant)
-            )
-            bb.btnBigConnect.contentDescription = getString(R.string.tasker_start_service)
-            bb.layoutBigTun.isVisible = false
-            bb.tvBigIp.isVisible = false
-        }
-    }
-
     override fun onResume() {
         super.onResume()
-        applyMainUiMode()
         setSelectedServerName()
-        applyBottomBarBorder()
+        updateTunToggleState()
         val enabled = MmkvManager.decodeSettingsBool(AppConfig.PREF_SERVER_SEARCH_BUTTON_ENABLED, true)
         if (enabled != searchButtonEnabled) {
             searchButtonEnabled = enabled
@@ -1455,178 +1157,11 @@ class MainActivity : HelperBaseActivity() {
 
     private fun updateTunToggleState() {
         val tunOn = SettingsManager.isTunEnabled()
-        updateExpressiveTunState(tunOn)
-        updateBigButtonTunState(tunOn)
-    }
-
-    private fun updateExpressiveTunState(tunOn: Boolean) {
-        val eb = expressiveBinding ?: return
-        if (tunOn) {
-            eb.ivTunIcon.setImageResource(R.drawable.ic_tun_on_24dp)
-            eb.btnTunToggle.setCardBackgroundColor(
-                MaterialColors.getColor(eb.btnTunToggle, android.R.attr.colorPrimary)
-            )
-            eb.ivTunIcon.setColorFilter(
-                MaterialColors.getColor(eb.ivTunIcon, com.google.android.material.R.attr.colorOnPrimary),
-                PorterDuff.Mode.SRC_IN
-            )
-            eb.btnTunToggle.contentDescription = getString(R.string.title_tun_enabled)
-        } else {
-            eb.ivTunIcon.setImageResource(R.drawable.ic_tun_off_24dp)
-            eb.btnTunToggle.setCardBackgroundColor(
-                MaterialColors.getColor(eb.btnTunToggle, com.google.android.material.R.attr.colorPrimaryContainer)
-            )
-            eb.ivTunIcon.setColorFilter(
-                MaterialColors.getColor(eb.ivTunIcon, com.google.android.material.R.attr.colorOnPrimaryContainer),
-                PorterDuff.Mode.SRC_IN
-            )
-            eb.btnTunToggle.contentDescription = getString(R.string.title_tun_disabled)
-        }
-    }
-
-    private fun updateBigButtonTunState(tunOn: Boolean) {
-        val bb = bigButtonBinding ?: return
-        bb.switchBigTun.isChecked = tunOn
-        bb.tvBigTunStatus.text = getString(if (tunOn) R.string.title_tun_enabled else R.string.title_tun_disabled)
-        val textColor = MaterialColors.getColor(
-            bb.tvBigTunStatus,
-            if (tunOn) com.google.android.material.R.attr.colorOnPrimaryContainer else com.google.android.material.R.attr.colorOnSurfaceVariant
-        )
-        bb.tvBigTunStatus.setTextColor(textColor)
-        bb.layoutBigTun.setCardBackgroundColor(
-            MaterialColors.getColor(
-                bb.layoutBigTun,
-                if (tunOn) com.google.android.material.R.attr.colorPrimaryContainer else com.google.android.material.R.attr.colorSurfaceContainerHighest
-            )
-        )
+        bottomBarState = bottomBarState.copy(tunEnabled = tunOn)
     }
 
     private fun setTunButtonVisible(visible: Boolean) {
-        expressiveBinding?.let { setExpressiveTunButtonVisible(it.btnTunToggle, visible) }
-        bigButtonBinding?.let { bb ->
-            if (visible) {
-                bb.layoutBigTun.isVisible = true
-                bb.layoutBigTun.alpha = 0f
-                bb.layoutBigTun.animate().alpha(1f).setDuration(250).start()
-            } else {
-                bb.layoutBigTun.animate().alpha(0f).setDuration(200)
-                    .withEndAction { bb.layoutBigTun.isVisible = false }
-                    .start()
-            }
-        }
-    }
-
-    private fun setExpressiveTunButtonVisible(button: com.google.android.material.card.MaterialCardView, visible: Boolean) {
-        if (visible && !button.isVisible) {
-            button.scaleX = 0f
-            button.scaleY = 0f
-            button.alpha = 0f
-            button.isVisible = true
-            springAnimate(button, SpringAnimation.SCALE_X, 1f, SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-            springAnimate(button, SpringAnimation.SCALE_Y, 1f, SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-            springAnimate(button, SpringAnimation.ALPHA, 1f, SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-        } else if (!visible && button.isVisible) {
-            SpringAnimation(button, SpringAnimation.SCALE_X, 0f).apply {
-                spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-                spring.dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
-                start()
-            }
-            SpringAnimation(button, SpringAnimation.SCALE_Y, 0f).apply {
-                spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-                spring.dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
-                start()
-            }
-            SpringAnimation(button, SpringAnimation.ALPHA, 0f).apply {
-                spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-                spring.dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
-                addEndListener { _, _, _, _ -> button.isVisible = false }
-                start()
-            }
-        }
-    }
-
-    private fun springAnimate(
-        view: View,
-        property: DynamicAnimation.ViewProperty,
-        toValue: Float,
-        stiffness: Float = SpringForce.STIFFNESS_MEDIUM,
-        dampingRatio: Float = SpringForce.DAMPING_RATIO_NO_BOUNCY
-    ) {
-        SpringAnimation(view, property, toValue).apply {
-            spring.stiffness = stiffness
-            spring.dampingRatio = dampingRatio
-            start()
-        }
-    }
-
-    /**
-     * Spring-animates a View's layout width. The layout reflows on every frame,
-     * so siblings with [LinearLayout.LayoutParams.weight] adjust automatically.
-     */
-    private fun springAnimateWidth(
-        view: View,
-        targetWidthPx: Float,
-        stiffness: Float,
-        dampingRatio: Float = SpringForce.DAMPING_RATIO_NO_BOUNCY
-    ) {
-        widthAnimations[view]?.cancel()
-
-        val prop = object : FloatPropertyCompat<View>("layoutWidth") {
-            override fun setValue(obj: View, value: Float) {
-                if (!obj.isAttachedToWindow) return
-                obj.layoutParams?.width = value.toInt().coerceAtLeast(0)
-                if (!obj.isInLayout) {
-                    obj.requestLayout()
-                }
-            }
-
-            override fun getValue(obj: View): Float {
-                return obj.layoutParams?.width?.toFloat() ?: obj.width.toFloat()
-            }
-        }
-        val anim = SpringAnimation(view, prop, targetWidthPx).apply {
-            spring.stiffness = stiffness
-            spring.dampingRatio = dampingRatio
-            addEndListener { animation, _, _, _ ->
-                if (widthAnimations[view] == animation) {
-                    widthAnimations.remove(view)
-                }
-            }
-        }
-        widthAnimations[view] = anim
-        anim.start()
-    }
-
-    private fun animateCardColor(
-        card: com.google.android.material.card.MaterialCardView,
-        fromColor: Int,
-        toColor: Int
-    ) {
-        val prop = object : FloatPropertyCompat<com.google.android.material.card.MaterialCardView>("cardColor") {
-            override fun setValue(obj: com.google.android.material.card.MaterialCardView, value: Float) {
-                obj.setCardBackgroundColor(android.animation.ArgbEvaluator().evaluate(value, fromColor, toColor) as Int)
-            }
-            override fun getValue(obj: com.google.android.material.card.MaterialCardView): Float = 0f
-        }
-        SpringAnimation(card, prop, 1f).apply {
-            spring.stiffness = SpringForce.STIFFNESS_LOW
-            spring.dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
-            start()
-        }
-    }
-
-    private fun animateIconColor(imageView: ImageView, fromColor: Int, toColor: Int) {
-        val prop = object : FloatPropertyCompat<ImageView>("iconColor") {
-            override fun setValue(obj: ImageView, value: Float) {
-                obj.setColorFilter(android.animation.ArgbEvaluator().evaluate(value, fromColor, toColor) as Int, PorterDuff.Mode.SRC_IN)
-            }
-            override fun getValue(obj: ImageView): Float = 0f
-        }
-        SpringAnimation(imageView, prop, 1f).apply {
-            spring.stiffness = SpringForce.STIFFNESS_LOW
-            spring.dampingRatio = SpringForce.DAMPING_RATIO_NO_BOUNCY
-            start()
-        }
+        bottomBarState = bottomBarState.copy(showTun = visible)
     }
 
     override fun onDestroy() {

@@ -72,18 +72,6 @@
         <item name="cornerSizeBottomRight">20dp</item>
     </style>
 
-    <style name="Widget.App.ToolbarPill" parent="Widget.Material3.CardView.Filled">
-        <item name="cardBackgroundColor">?attr/colorSurfaceContainerHighest</item>
-        <item name="cardElevation">2dp</item>
-        <item name="strokeWidth">0dp</item>
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.App.Pill</item>
-    </style>
-
-    <style name="Widget.App.FabExpressive" parent="Widget.Material3.CardView.Filled">
-        <item name="cardElevation">3dp</item>
-        <item name="strokeWidth">0dp</item>
-    </style>
-
     <style name="Widget.App.ListItem" parent="Widget.Material3.CardView.Filled">
         <item name="cardBackgroundColor">?attr/colorSurfaceContainerHigh</item>
         <item name="cardElevation">0dp</item>
