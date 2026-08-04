@@ -34,7 +34,7 @@ Veil is a privacy-focused proxy client forked from <a href="https://github.com/2
 
 ---
 
-## Screenshots
+## Screenshots (v0.3.0)
 
 <p align="center">
   <kbd>
@@ -53,12 +53,6 @@ Veil is a privacy-focused proxy client forked from <a href="https://github.com/2
     <img src="docs/screenshots/settings.png" width="220" style="border-radius: 12px;" alt="Settings">
     <br>
     <sub><b>Settings</b></sub>
-  </kbd>
-  &nbsp;&nbsp;
-  <kbd>
-    <img src="docs/screenshots/olcrtc+details.png" width="220" style="border-radius: 12px;" alt="olcRTC details">
-    <br>
-    <sub><b>olcRTC + Details</b></sub>
   </kbd>
 </p>
 
