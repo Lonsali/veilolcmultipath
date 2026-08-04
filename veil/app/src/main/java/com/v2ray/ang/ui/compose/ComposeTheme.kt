@@ -12,6 +12,8 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
@@ -52,6 +54,8 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer = Color(0xFFCFD8DC),
     tertiary = Color(0xFFF5C842),
     onTertiary = Color(0xFF3E2D00),
+    tertiaryContainer = Color(0xFF7C5800),
+    onTertiaryContainer = Color(0xFFFFEECC),
     surface = Color(0xFF1B1B1F),
     onSurface = Color(0xFFE6E1E5),
     surfaceVariant = Color(0xFF49454F),
@@ -61,6 +65,16 @@ private val DarkColorScheme = darkColorScheme(
     outline = Color(0xFF938F99),
     outlineVariant = Color(0xFF49454F),
 )
+
+// Accent color used by active FAB / progress indicators.
+val colorFabActive = Color(0xFFf97910)
+
+// Divider colors for list dividers.
+val dividerColorLight = Color(0xFFE0E0E0)
+val dividerColorDark = Color(0xFF424242)
+
+// Composition local for whether the app is in dark theme.
+val LocalDarkTheme = compositionLocalOf { false }
 
 private val GoogleSans = FontFamily(Font(R.font.google_sans_flex))
 
@@ -106,10 +120,12 @@ fun AppTheme(
         FontFamily.Default
     }
 
-    MaterialExpressiveTheme(
-        colorScheme = colorScheme,
-        typography = typography(fontFamily),
-        motionScheme = MotionScheme.expressive(),
-        content = content
-    )
+    CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialExpressiveTheme(
+            colorScheme = colorScheme,
+            typography = typography(fontFamily),
+            motionScheme = MotionScheme.expressive(),
+            content = content
+        )
+    }
 }

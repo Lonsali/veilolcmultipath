@@ -2,12 +2,11 @@ package com.v2ray.ang.ui.compose
 
 import android.view.View
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.padding
@@ -19,7 +18,6 @@ import androidx.compose.material3.ButtonGroupScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -54,7 +52,7 @@ fun ExpressiveToolbarActions(
     modifier: Modifier = Modifier,
 ) {
     val view = LocalView.current
-    val addIcon = Icons.Filled.AddCircleOutline
+    val addIcon = Icons.Filled.Add
     val filterIcon = Icons.Default.Search
     val moreIcon = Icons.Default.MoreVert
     val addLabel = stringResource(R.string.menu_item_add_config)
@@ -63,8 +61,8 @@ fun ExpressiveToolbarActions(
     ButtonGroup(
         overflowIndicator = {},
         modifier = modifier
-
-            .padding(end = 12.dp),
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         toolbarIconItem(
@@ -107,10 +105,7 @@ private fun ButtonGroupScope.toolbarIconItem(
             val pressProgress = remember { Animatable(0f) }
             val hapticFeedback = LocalHapticFeedback.current
             val pressSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
-            val bounceSpec = spring<Float>(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-            )
+            val bounceSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
 
             LaunchedEffect(isPressed) {
                 if (isPressed) {
@@ -139,7 +134,7 @@ private fun ButtonGroupScope.toolbarIconItem(
                     .background(containerColor, shape)
                     .clickable(
                         interactionSource = interactionSource,
-                        indication = ripple(),
+                        indication = null,
                         role = Role.Button,
                         onClick = {
                             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)

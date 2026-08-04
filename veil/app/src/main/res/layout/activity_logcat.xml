@@ -12,29 +12,10 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/search_input_layout"
-            style="@style/Widget.App.SearchBar"
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/composeSearchBar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
-            android:layout_marginTop="8dp"
-            android:visibility="gone"
-            app:endIconMode="clear_text"
-            app:startIconDrawable="@drawable/ic_outline_filter_alt_24">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/et_search"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:hint="@string/hint_search"
-                android:inputType="text"
-                android:minHeight="0dp"
-                android:paddingTop="0dp"
-                android:paddingBottom="0dp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            android:layout_height="wrap_content" />
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refresh_layout"

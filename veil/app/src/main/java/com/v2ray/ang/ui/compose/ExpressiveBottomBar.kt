@@ -2,6 +2,7 @@ package com.v2ray.ang.ui.compose
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -19,9 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -29,8 +30,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -81,10 +83,13 @@ fun ExpressiveBottomBar(
     val tunPressed by tunInteraction.collectIsPressedAsState()
     val hapticFeedback = LocalHapticFeedback.current
     val spatialSpec = MaterialTheme.motionScheme.fastSpatialSpec<androidx.compose.ui.unit.Dp>()
+    val floatSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
     val sizeSpec = MaterialTheme.motionScheme.slowSpatialSpec<IntSize>()
     val paddingSpec = MaterialTheme.motionScheme.slowSpatialSpec<androidx.compose.ui.unit.Dp>()
-    val startWidth by animateDpAsState(if (startPressed) 84.dp else 76.dp, spatialSpec, label = "start width")
-    val tunWidth by animateDpAsState(if (tunPressed) 56.dp else 52.dp, spatialSpec, label = "tun width")
+    val startWidth by animateDpAsState(if (startPressed) 88.dp else 80.dp, spatialSpec, label = "start width")
+    val tunWidth by animateDpAsState(if (tunPressed) 48.dp else 44.dp, spatialSpec, label = "tun width")
+    val startScale = remember { Animatable(1f) }
+    val tunScale = remember { Animatable(1f) }
     val density = LocalDensity.current
     var toolbarHeightPx by remember { mutableIntStateOf(0) }
     val targetEndPadding = with(density) {
@@ -93,6 +98,22 @@ fun ExpressiveBottomBar(
     }
     val endPadding by animateDpAsState(targetEndPadding, paddingSpec, label = "toolbar end padding")
     val status = state.status.ifEmpty { stringResource(R.string.connection_not_connected) }
+
+    LaunchedEffect(startPressed) {
+        if (startPressed) {
+            startScale.animateTo(0.92f, floatSpec)
+        } else {
+            startScale.animateTo(1f, floatSpec)
+        }
+    }
+
+    LaunchedEffect(tunPressed) {
+        if (tunPressed) {
+            tunScale.animateTo(0.92f, floatSpec)
+        } else {
+            tunScale.animateTo(1f, floatSpec)
+        }
+    }
 
     Row(
         modifier = modifier
@@ -173,13 +194,20 @@ fun ExpressiveBottomBar(
                 if (state.showTun && !state.isLoading) {
                     Box(
                         modifier = Modifier
-                            .padding(start = 8.dp)
+                            .padding(start = 4.dp)
                             .size(width = tunWidth, height = 52.dp)
-                            .clip(CircleShape)
-                            .background(if (state.tunEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer)
+                            .clip(RoundedCornerShape(percent = 50))
+                            .background(
+                                if (state.tunEnabled) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.secondaryContainer
+                            )
+                            .graphicsLayer {
+                                scaleX = tunScale.value
+                                scaleY = tunScale.value
+                            }
                             .combinedClickable(
                                 interactionSource = tunInteraction,
-                                indication = ripple(),
+                                indication = null,
                                 role = Role.Button,
                                 onClick = {
                                     hapticFeedback.performHapticFeedback(
@@ -193,22 +221,27 @@ fun ExpressiveBottomBar(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Key,
+                            imageVector = Icons.Outlined.VpnKey,
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = if (state.tunEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+                            tint = if (state.tunEnabled) MaterialTheme.colorScheme.onPrimary
+                            else MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
 
                     Box(
                         modifier = Modifier
-                            .padding(start = 4.dp)
+                            .padding(start = 6.dp)
                             .size(width = startWidth, height = 52.dp)
                             .clip(CircleShape)
                             .background(if (state.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
+                            .graphicsLayer {
+                                scaleX = startScale.value
+                                scaleY = startScale.value
+                            }
                             .combinedClickable(
                                 interactionSource = startInteraction,
-                                indication = ripple(),
+                                indication = null,
                                 role = Role.Button,
                                 onClick = {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.VirtualKey)
@@ -223,7 +256,7 @@ fun ExpressiveBottomBar(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = if (state.isRunning) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
+                            imageVector = if (state.isRunning) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
                             contentDescription = null,
                             tint = if (state.isRunning) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
                         )
@@ -231,13 +264,17 @@ fun ExpressiveBottomBar(
                 } else {
                     Box(
                         modifier = Modifier
-                            .padding(start = 8.dp)
+                            .padding(start = 6.dp)
                             .size(width = startWidth, height = 52.dp)
                             .clip(CircleShape)
                             .background(if (state.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer)
+                            .graphicsLayer {
+                                scaleX = startScale.value
+                                scaleY = startScale.value
+                            }
                             .combinedClickable(
                                 interactionSource = startInteraction,
-                                indication = ripple(),
+                                indication = null,
                                 role = Role.Button,
                                 onClick = {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.VirtualKey)
@@ -258,7 +295,7 @@ fun ExpressiveBottomBar(
                             )
                         } else {
                             Icon(
-                                imageVector = if (state.isRunning) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
+                                imageVector = if (state.isRunning) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
                                 contentDescription = null,
                                 tint = if (state.isRunning) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
                             )

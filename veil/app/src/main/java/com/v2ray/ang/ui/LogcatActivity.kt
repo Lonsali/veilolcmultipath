@@ -2,25 +2,24 @@ package com.v2ray.ang.ui
 
 import android.annotation.SuppressLint
 import android.content.ClipData
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import androidx.activity.viewModels
-import androidx.core.widget.addTextChangedListener
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import androidx.transition.TransitionManager
-import com.google.android.material.transition.MaterialFade
 import com.v2ray.ang.R
 import com.v2ray.ang.databinding.ActivityLogcatBinding
 import com.v2ray.ang.extension.toast
 import com.v2ray.ang.extension.toastSuccess
+import com.v2ray.ang.ui.compose.AppTheme
+import com.v2ray.ang.ui.compose.VeilSearchBar
 import com.v2ray.ang.util.Utils
 import com.v2ray.ang.viewmodel.LogcatViewModel
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +35,8 @@ class LogcatActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     private val binding by lazy { ActivityLogcatBinding.inflate(layoutInflater) }
     private val viewModel: LogcatViewModel by viewModels()
     private lateinit var adapter: LogcatRecyclerAdapter
+    private var searchVisible by mutableStateOf(false)
+    private var searchQuery by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,12 +51,29 @@ class LogcatActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
 
         binding.refreshLayout.setOnRefreshListener(this)
 
-        binding.etSearch.addTextChangedListener { text ->
-            viewModel.filter(text?.toString())
-            refreshData()
-        }
-        binding.searchInputLayout.setEndIconOnClickListener {
-            binding.etSearch.text?.clear()
+        binding.composeSearchBar.apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                AppTheme {
+                    VeilSearchBar(
+                        query = searchQuery,
+                        onQueryChange = { query ->
+                            searchQuery = query
+                            viewModel.filter(query)
+                            refreshData()
+                        },
+                        visible = searchVisible,
+                        onDismiss = {
+                            searchVisible = false
+                            searchQuery = ""
+                            viewModel.filter("")
+                            refreshData()
+                        },
+                    )
+                }
+            }
         }
 
         toast(getString(R.string.pull_down_to_refresh))
@@ -116,20 +134,13 @@ class LogcatActivity : BaseActivity(), SwipeRefreshLayout.OnRefreshListener {
     }
 
     private fun toggleSearch() {
-        val parent = binding.searchInputLayout.parent as ViewGroup
-        TransitionManager.beginDelayedTransition(parent, MaterialFade())
-        if (binding.searchInputLayout.visibility == View.VISIBLE) {
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
-            binding.searchInputLayout.visibility = View.GONE
-            binding.etSearch.text?.clear()
+        if (searchVisible) {
+            searchVisible = false
+            searchQuery = ""
             viewModel.filter("")
             refreshData()
         } else {
-            binding.searchInputLayout.visibility = View.VISIBLE
-            binding.etSearch.requestFocus()
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(binding.etSearch, InputMethodManager.SHOW_IMPLICIT)
+            searchVisible = true
         }
     }
 

@@ -1,79 +1,138 @@
 package com.v2ray.ang.ui
 
 import android.os.Bundle
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.v2ray.ang.AppConfig
+import androidx.lifecycle.repeatOnLifecycle
 import com.v2ray.ang.BuildConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.CoreNativeManager
-import com.v2ray.ang.databinding.ActivityCheckUpdateBinding
-import com.v2ray.ang.dto.CheckUpdateResult
-import com.v2ray.ang.extension.toast
-import com.v2ray.ang.extension.toastError
-import com.v2ray.ang.extension.toastSuccess
-import com.v2ray.ang.handler.MmkvManager
-import com.v2ray.ang.handler.UpdateCheckerManager
-import com.v2ray.ang.util.LogUtil
+import com.v2ray.ang.ui.base.BaseComponentActivity
+import com.v2ray.ang.ui.base.BaseViewModelEvent
+import com.v2ray.ang.ui.compose.AppTopBar
+import com.v2ray.ang.ui.compose.SettingsMenuItem
+import com.v2ray.ang.ui.compose.SettingsSwitchItem
+import com.v2ray.ang.ui.compose.VersionInfoBlock
 import com.v2ray.ang.util.Utils
+import com.v2ray.ang.viewmodel.CheckUpdateViewModel
 import kotlinx.coroutines.launch
 
-class CheckUpdateActivity : BaseActivity() {
+class CheckUpdateActivity : BaseComponentActivity() {
 
-    private val binding by lazy { ActivityCheckUpdateBinding.inflate(layoutInflater) }
+    private val viewModel: CheckUpdateViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(binding.root)
-        setContentViewWithToolbar(binding.root, showHomeAsUp = true, title = getString(R.string.update_check_for_update))
-
-        binding.layoutCheckUpdate.setOnClickListener {
-            checkForUpdates(binding.checkPreRelease.isChecked)
-        }
-
-        binding.checkPreRelease.setOnCheckedChangeListener { _, isChecked ->
-            MmkvManager.encodeSettings(AppConfig.PREF_CHECK_UPDATE_PRE_RELEASE, isChecked)
-        }
-        binding.checkPreRelease.isChecked = MmkvManager.decodeSettingsBool(AppConfig.PREF_CHECK_UPDATE_PRE_RELEASE, false)
-
-        "v${BuildConfig.VERSION_NAME} (${CoreNativeManager.getLibVersion()})".also {
-            binding.tvVersion.text = it
-        }
-
-        checkForUpdates(binding.checkPreRelease.isChecked)
+        observeViewModel()
     }
 
-    private fun checkForUpdates(includePreRelease: Boolean) {
-        toast(R.string.update_checking_for_update)
-        showLoading()
-
+    private fun observeViewModel() {
         lifecycleScope.launch {
-            try {
-                val result = UpdateCheckerManager.checkForUpdate(includePreRelease)
-                if (result.hasUpdate) {
-                    showUpdateDialog(result)
-                } else {
-                    toastSuccess(R.string.update_already_latest_version)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.viewModelEvent.collect { event ->
+                    if (event is BaseViewModelEvent.FinishActivity) {
+                        finish()
+                    }
                 }
-            } catch (e: Exception) {
-                LogUtil.e(AppConfig.TAG, "Failed to check for updates: ${e.message}")
-                toastError(e.message ?: getString(R.string.toast_failure))
-            } finally {
-                hideLoading()
             }
         }
     }
 
-    private fun showUpdateDialog(result: CheckUpdateResult) {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.update_new_version_found, result.latestVersion))
-            .setMessage(result.releaseNotes)
-            .setPositiveButton(R.string.update_now) { _, _ ->
-                result.downloadUrl?.let {
-                    Utils.openUri(this, it)
+    @Composable
+    override fun ScreenContent() {
+        CheckUpdateScreen(viewModel = viewModel, onBackClick = { finish() })
+    }
+}
+
+@Composable
+fun CheckUpdateScreen(
+    viewModel: CheckUpdateViewModel,
+    onBackClick: () -> Unit
+) {
+    val context = LocalContext.current
+
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val checkPreRelease by viewModel.checkPreRelease.collectAsStateWithLifecycle()
+    val showUpdateDialog by viewModel.showUpdateDialog.collectAsStateWithLifecycle()
+    val updateResult by viewModel.updateResult.collectAsStateWithLifecycle()
+
+    val versionText = "v${BuildConfig.VERSION_NAME} (${CoreNativeManager.getLibVersion()})"
+
+    LaunchedEffect(Unit) {
+        viewModel.checkForUpdates()
+    }
+
+    Scaffold(
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
+        topBar = {
+            AppTopBar(
+                title = stringResource(R.string.update_check_for_update),
+                onBackClick = onBackClick,
+                isLoading = isLoading
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            SettingsSwitchItem(
+                icon = painterResource(R.drawable.ic_source_code_24dp),
+                title = stringResource(R.string.update_check_pre_release),
+                checked = checkPreRelease,
+                onCheckedChange = { viewModel.toggleCheckPreRelease(it) }
+            )
+            SettingsMenuItem(
+                icon = painterResource(R.drawable.ic_check_update_24dp),
+                title = stringResource(R.string.update_check_for_update),
+                onClick = { viewModel.checkForUpdates() }
+            )
+            VersionInfoBlock(versionText = versionText)
+        }
+    }
+
+    if (showUpdateDialog && updateResult != null) {
+        val result = updateResult!!
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissUpdateDialog() },
+            title = { Text(stringResource(R.string.update_new_version_found, result.latestVersion ?: "")) },
+            text = { Text(result.releaseNotes ?: "") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.dismissUpdateDialog()
+                    result.downloadUrl?.let { Utils.openUri(context, it) }
+                }) {
+                    Text(stringResource(R.string.update_now))
                 }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissUpdateDialog() }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }

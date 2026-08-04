@@ -9,26 +9,20 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.drawerlayout.widget.DrawerLayout
-import android.content.Context
-import android.view.inputmethod.InputMethodManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
-import androidx.core.widget.addTextChangedListener
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.android.material.transition.MaterialFade
-import androidx.transition.TransitionManager
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.core.CoreServiceManager
@@ -55,6 +49,7 @@ import com.v2ray.ang.ui.compose.AppTheme
 import com.v2ray.ang.ui.compose.ExpressiveToolbarActions
 import com.v2ray.ang.ui.compose.ExpressiveBottomBar
 import com.v2ray.ang.ui.compose.ExpressiveBottomBarState
+import com.v2ray.ang.ui.compose.VeilSearchBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -80,6 +75,8 @@ class MainActivity : HelperBaseActivity() {
     private var connectedAt: Long = 0L
     private var uptimeJob: Job? = null
     private var searchButtonEnabled by mutableStateOf(true)
+    private var searchVisible by mutableStateOf(false)
+    private var searchQuery by mutableStateOf("")
     private var bottomBarState by mutableStateOf(ExpressiveBottomBarState())
     private var currentSnackbar: com.google.android.material.snackbar.Snackbar? = null
 
@@ -144,11 +141,27 @@ class MainActivity : HelperBaseActivity() {
         setupNavigationDrawer()
 
         // setup search
-        binding.etSearch.addTextChangedListener { text ->
-            mainViewModel.filterConfig(text?.toString().orEmpty())
-        }
-        binding.searchInputLayout.setEndIconOnClickListener {
-            binding.etSearch.text?.clear()
+        binding.composeSearchBar.apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                AppTheme {
+                    VeilSearchBar(
+                        query = searchQuery,
+                        onQueryChange = { query ->
+                            searchQuery = query
+                            mainViewModel.filterConfig(query)
+                        },
+                        visible = searchVisible,
+                        onDismiss = {
+                            searchVisible = false
+                            searchQuery = ""
+                            mainViewModel.filterConfig("")
+                        },
+                    )
+                }
+            }
         }
 
         bindBottomBar()
@@ -599,7 +612,7 @@ class MainActivity : HelperBaseActivity() {
         val enabled = MmkvManager.decodeSettingsBool(AppConfig.PREF_SERVER_SEARCH_BUTTON_ENABLED, true)
         if (enabled != searchButtonEnabled) {
             searchButtonEnabled = enabled
-            if (!enabled && binding.searchInputLayout.visibility == View.VISIBLE) {
+            if (!enabled && searchVisible) {
                 toggleSearch()
             }
         }
@@ -760,7 +773,7 @@ class MainActivity : HelperBaseActivity() {
 
     private fun showOverflowPopupMenu(anchor: View) {
         val popup = android.widget.PopupMenu(this, anchor)
-        popup.menu.add(0, R.id.search_view, 0, R.string.menu_item_search)
+        popup.menu.add(0, R.id.search_view, 0, R.string.menu_item_search).setIcon(R.drawable.ic_search_24dp)
         popup.menu.add(0, R.id.service_restart, 0, R.string.title_service_restart)
         popup.menu.add(0, R.id.del_all_config, 0, R.string.title_del_all_config)
         popup.menu.add(0, R.id.del_duplicate_config, 0, R.string.title_del_duplicate_config)
@@ -775,19 +788,12 @@ class MainActivity : HelperBaseActivity() {
     }
 
     private fun toggleSearch() {
-        val parent = binding.searchInputLayout.parent as ViewGroup
-        TransitionManager.beginDelayedTransition(parent, MaterialFade())
-        if (binding.searchInputLayout.visibility == View.VISIBLE) {
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
-            binding.searchInputLayout.visibility = View.GONE
-            binding.etSearch.text?.clear()
+        if (searchVisible) {
+            searchVisible = false
+            searchQuery = ""
             mainViewModel.filterConfig("")
         } else {
-            binding.searchInputLayout.visibility = View.VISIBLE
-            binding.etSearch.requestFocus()
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(binding.etSearch, InputMethodManager.SHOW_IMPLICIT)
+            searchVisible = true
         }
     }
 

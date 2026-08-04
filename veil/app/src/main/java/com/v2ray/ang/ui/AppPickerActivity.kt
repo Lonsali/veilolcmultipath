@@ -6,17 +6,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
-import androidx.core.widget.addTextChangedListener
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
-import androidx.transition.TransitionManager
-import com.google.android.material.transition.MaterialFade
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.databinding.ActivityAppPickerBinding
 import com.v2ray.ang.dto.AppInfo
+import com.v2ray.ang.ui.compose.AppTheme
+import com.v2ray.ang.ui.compose.VeilSearchBar
 import com.v2ray.ang.util.AppManagerUtil
 import com.v2ray.ang.util.LogUtil
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +50,8 @@ class AppPickerActivity : BaseActivity() {
     private val selectedPackages = LinkedHashSet<String>()
     private var appsAll: List<AppInfo> = emptyList()
     private val adapter = AppSelectorAdapter(selectedPackages)
+    private var searchVisible by mutableStateOf(false)
+    private var searchQuery by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,11 +61,27 @@ class AppPickerActivity : BaseActivity() {
         setupRecyclerView()
         loadApps()
 
-        binding.etSearch.addTextChangedListener { text ->
-            filterApps(text?.toString().orEmpty())
-        }
-        binding.searchInputLayout.setEndIconOnClickListener {
-            binding.etSearch.text?.clear()
+        binding.composeSearchBar.apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                AppTheme {
+                    VeilSearchBar(
+                        query = searchQuery,
+                        onQueryChange = { query ->
+                            searchQuery = query
+                            filterApps(query)
+                        },
+                        visible = searchVisible,
+                        onDismiss = {
+                            searchVisible = false
+                            searchQuery = ""
+                            filterApps("")
+                        },
+                    )
+                }
+            }
         }
     }
 
@@ -102,19 +120,12 @@ class AppPickerActivity : BaseActivity() {
     }
 
     private fun toggleSearch() {
-        val parent = binding.searchInputLayout.parent as ViewGroup
-        TransitionManager.beginDelayedTransition(parent, MaterialFade())
-        if (binding.searchInputLayout.visibility == View.VISIBLE) {
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
-            binding.searchInputLayout.visibility = View.GONE
-            binding.etSearch.text?.clear()
+        if (searchVisible) {
+            searchVisible = false
+            searchQuery = ""
             filterApps("")
         } else {
-            binding.searchInputLayout.visibility = View.VISIBLE
-            binding.etSearch.requestFocus()
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(binding.etSearch, InputMethodManager.SHOW_IMPLICIT)
+            searchVisible = true
         }
     }
 

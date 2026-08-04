@@ -6,14 +6,12 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import androidx.activity.viewModels
-import androidx.core.widget.addTextChangedListener
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
-import androidx.transition.TransitionManager
-import com.google.android.material.transition.MaterialFade
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.AppConfig.ANG_PACKAGE
 import com.v2ray.ang.R
@@ -26,6 +24,8 @@ import com.v2ray.ang.extension.v2RayApplication
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.handler.SettingsManager
+import com.v2ray.ang.ui.compose.AppTheme
+import com.v2ray.ang.ui.compose.VeilSearchBar
 import com.v2ray.ang.util.AppManagerUtil
 import com.v2ray.ang.util.HttpUtil
 import com.v2ray.ang.util.LogUtil
@@ -42,6 +42,8 @@ class PerAppProxyActivity : BaseActivity() {
     private var adapter: PerAppProxyAdapter? = null
     private var appsAll: List<AppInfo>? = null
     private val viewModel: PerAppProxyViewModel by viewModels()
+    private var searchVisible by mutableStateOf(false)
+    private var searchQuery by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,28 +65,37 @@ class PerAppProxyActivity : BaseActivity() {
             toast(R.string.summary_pref_per_app_proxy)
         }
 
-        binding.etSearch.addTextChangedListener { text ->
-            filterProxyApp(text?.toString().orEmpty())
-        }
-        binding.searchInputLayout.setEndIconOnClickListener {
-            binding.etSearch.text?.clear()
+        binding.composeSearchBar.apply {
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+            )
+            setContent {
+                AppTheme {
+                    VeilSearchBar(
+                        query = searchQuery,
+                        onQueryChange = { query ->
+                            searchQuery = query
+                            filterProxyApp(query)
+                        },
+                        visible = searchVisible,
+                        onDismiss = {
+                            searchVisible = false
+                            searchQuery = ""
+                            filterProxyApp("")
+                        },
+                    )
+                }
+            }
         }
     }
 
     private fun toggleSearch() {
-        val parent = binding.searchInputLayout.parent as ViewGroup
-        TransitionManager.beginDelayedTransition(parent, MaterialFade())
-        if (binding.searchInputLayout.visibility == View.VISIBLE) {
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.hideSoftInputFromWindow(binding.etSearch.windowToken, 0)
-            binding.searchInputLayout.visibility = View.GONE
-            binding.etSearch.text?.clear()
+        if (searchVisible) {
+            searchVisible = false
+            searchQuery = ""
             filterProxyApp("")
         } else {
-            binding.searchInputLayout.visibility = View.VISIBLE
-            binding.etSearch.requestFocus()
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(binding.etSearch, InputMethodManager.SHOW_IMPLICIT)
+            searchVisible = true
         }
     }
 

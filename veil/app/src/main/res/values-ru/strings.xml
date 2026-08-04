@@ -541,6 +541,10 @@
     <string name="title_tg_channel">Telegram-канал разработчика</string>
     <string name="title_original_repo">Оригинальный репозиторий v2rayNG</string>
     <string name="summary_app_fork">Veil — это форк v2rayNG от 2dust</string>
+    <string name="about_section_connect">Связь</string>
+    <string name="about_section_legal">Правовая информация</string>
+    <string name="about_copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="about_logo_description">Логотип Veil</string>
 
     <string name="title_kill_app">Завершить приложение</string>
 
