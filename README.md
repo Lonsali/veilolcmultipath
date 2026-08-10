@@ -200,7 +200,7 @@ For standard protocols Xray connects directly to the remote server. For olcRTC p
 
 ## Migrating from v2rayNG
 
-Veil is a fork of [v2rayNG](https://github.com/2dust/v2rayNG) and shares its config format, so migration is seamless (available since Veil 2.0.x):
+Veil is a fork of [v2rayNG](https://github.com/2dust/v2rayNG) and shares its config format, so migration is seamless (available since v2rayNG 2.0.x):
 
 1. Open v2rayNG → side drawer → **Backup & Restore** → **Backup config** → **Local**
 2. Transfer the saved config files to this device
