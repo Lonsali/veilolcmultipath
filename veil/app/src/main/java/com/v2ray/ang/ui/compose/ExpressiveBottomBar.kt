@@ -20,8 +20,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -256,7 +256,7 @@ fun ExpressiveBottomBar(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = if (state.isRunning) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
+                            imageVector = if (state.isRunning) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
                             contentDescription = null,
                             tint = if (state.isRunning) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
                         )
@@ -290,12 +290,12 @@ fun ExpressiveBottomBar(
                     ) {
                         if (state.isLoading) {
                             LoadingIndicator(
-                                modifier = Modifier.size(28.dp),
+                                modifier = Modifier.size(34.dp),
                                 color = MaterialTheme.colorScheme.primary,
                             )
                         } else {
                             Icon(
-                                imageVector = if (state.isRunning) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
+                                imageVector = if (state.isRunning) Icons.Outlined.Stop else Icons.Outlined.PlayArrow,
                                 contentDescription = null,
                                 tint = if (state.isRunning) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
                             )

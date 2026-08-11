@@ -447,6 +447,17 @@ object Utils {
     }
 
     /**
+     * Generate a random HWID matching the pattern [a-zA-Z0-9=-]{16}.
+     *
+     * @return A random 16-character HWID string.
+     */
+    fun generateHwid(): String {
+        val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789=-"
+        val random = kotlin.random.Random
+        return (1..16).map { chars[random.nextInt(chars.length)] }.joinToString("")
+    }
+
+    /**
      * Get the dark mode status.
      *
      * @param context The context to use.

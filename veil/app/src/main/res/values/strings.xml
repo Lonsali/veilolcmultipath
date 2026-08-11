@@ -40,6 +40,26 @@
     <!--ServerActivity-->
     <string name="title_server">Servers</string>
     <string name="menu_item_add_config">Add config</string>
+    <string name="add_config_import_section">Import</string>
+    <string name="add_config_create_section">Create manually</string>
+    <string name="add_config_subtitle">Import a config or build one manually</string>
+    <string name="add_config_policy_group_caption">Balance or fail over across servers</string>
+    <string name="add_config_proxy_chain_caption">Route through multiple servers</string>
+    <string name="add_config_protocol_section">Server protocol</string>
+    <string name="add_config_qr">QR code</string>
+    <string name="add_config_clipboard">Clipboard</string>
+    <string name="add_config_file">File</string>
+    <string name="add_config_policy_group">Policy group</string>
+    <string name="add_config_proxy_chain">Proxy chain</string>
+    <string name="add_config_vmess" translatable="false">VMess</string>
+    <string name="add_config_vless" translatable="false">VLESS</string>
+    <string name="add_config_shadowsocks" translatable="false">Shadowsocks</string>
+    <string name="add_config_socks" translatable="false">SOCKS</string>
+    <string name="add_config_http" translatable="false">HTTP</string>
+    <string name="add_config_trojan" translatable="false">Trojan</string>
+    <string name="add_config_wireguard" translatable="false">WireGuard</string>
+    <string name="add_config_hysteria2" translatable="false">Hysteria2</string>
+    <string name="add_config_olcrtc" translatable="false">olcRTC</string>
     <string name="menu_item_save_config">Save config</string>
     <string name="menu_item_edit_config">Edit config</string>
     <string name="menu_item_del_config">Delete config</string>
@@ -343,6 +363,9 @@
     <string name="connection_info_action_ping">Ping</string>
     <string name="connection_info_action_share">Share</string>
     <string name="connection_info_ip_copied">IP copied to clipboard</string>
+    <string name="connection_info_loading">Detecting…</string>
+    <string name="connection_info_download">Download</string>
+    <string name="connection_info_upload">Upload</string>
 
     <string name="title_pref_sniffing_enabled">Enable Sniffing</string>
     <string
@@ -613,6 +636,11 @@
     <string name="sub_setting_user_agent">User Agent</string>
     <string name="sub_setting_filter">Remarks regular filter</string>
     <string name="sub_setting_enable">Enable update</string>
+    <string name="sub_setting_hwid">HWID (Device ID)</string>
+    <string name="sub_setting_hwid_generate">Generate</string>
+    <string name="sub_setting_hwid_validation">HWID must be 10-64 characters of a-z, A-Z, 0-9, =, -</string>
+    <string name="sub_setting_custom_headers">Custom HTTP Headers</string>
+    <string name="sub_setting_custom_headers_hint">Name: value (one header per line)</string>
     <string name="sub_auto_update">Enable automatic update</string>
     <string name="sub_allow_insecure_url">Allow insecure HTTP address</string>
     <string
@@ -641,6 +669,7 @@
     <string
         name="title_update_subscription_result"
     >Updated %1$d configs (%2$d success, %3$d failed, %4$d skipped)</string>
+    <string name="title_hwid_rejected">HWID device limit reached for %d subscription(s)</string>
     <string
         name="title_update_subscription_no_subscription"
     >No subscriptions</string>

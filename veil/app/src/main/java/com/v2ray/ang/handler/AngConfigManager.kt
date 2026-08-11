@@ -554,6 +554,8 @@ object AngConfigManager {
             }
             LogUtil.i(AppConfig.TAG, url)
             val userAgent = it.subscription.userAgent
+            val hwid = it.subscription.hwid
+            val customHeaders = it.subscription.customHeaders
             val proxyUsername = SettingsManager.getSocksUsername()
             val proxyPassword = SettingsManager.getSocksPassword()
 
@@ -563,6 +565,8 @@ object AngConfigManager {
                     UrlContentRequest(
                         url = url,
                         userAgent = userAgent,
+                        hwid = hwid,
+                        headers = customHeaders,
                         timeout = 15000,
                         httpPort = httpPort,
                         proxyUsername = proxyUsername,
@@ -578,7 +582,9 @@ object AngConfigManager {
                     HttpUtil.getUrlContentWithHeaders(
                         UrlContentRequest(
                             url = url,
-                            userAgent = userAgent
+                            userAgent = userAgent,
+                            hwid = hwid,
+                            headers = customHeaders
                         )
                     )
                 } catch (e: Exception) {
@@ -588,6 +594,15 @@ object AngConfigManager {
             }
             val configText = response.body
             if (configText.isEmpty()) {
+                val hdr = response.headers
+                val hwidRejected = hdr.containsKey("x-hwid-max-devices-reached") || hdr.containsKey("x-hwid-limit")
+                val hwidRequired = hdr.containsKey("x-hwid-not-supported")
+                if (hwidRejected) {
+                    return SubscriptionUpdateResult(hwidRejectedCount = 1)
+                }
+                if (hwidRequired) {
+                    LogUtil.w(AppConfig.TAG, "Subscription requires HWID but none sent: ${it.subscription.remarks}")
+                }
                 return SubscriptionUpdateResult(failureCount = 1)
             }
 

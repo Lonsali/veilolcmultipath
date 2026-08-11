@@ -3,16 +3,21 @@ package com.v2ray.ang.ui
 import android.os.Bundle
 import android.text.TextUtils
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -98,6 +103,11 @@ class SubEditActivity : BaseComponentActivity() {
             return false
         }
 
+        if (!subItem.hwid.isNullOrBlank() && !subItem.hwid!!.matches(Regex("^[a-zA-Z0-9=-]{10,64}$"))) {
+            toast(R.string.sub_setting_hwid_validation)
+            return false
+        }
+
         MmkvManager.encodeSubscription(editSubId, subItem)
         SubscriptionUpdater.syncOne(subId = editSubId)
         SettingsChangeManager.makeSetupGroupTab()
@@ -130,6 +140,12 @@ fun SubEditScreen(
     var remarks by rememberSaveable { mutableStateOf(initial.remarks) }
     var url by rememberSaveable { mutableStateOf(initial.url) }
     var userAgent by rememberSaveable { mutableStateOf(initial.userAgent ?: "") }
+    var hwid by rememberSaveable { mutableStateOf(initial.hwid ?: "") }
+    var customHeadersText by rememberSaveable {
+        mutableStateOf(
+            initial.customHeaders?.entries?.joinToString("\n") { "${it.key}: ${it.value}" } ?: ""
+        )
+    }
     var filter by rememberSaveable { mutableStateOf(initial.filter ?: "") }
     var enabled by rememberSaveable { mutableStateOf(initial.enabled) }
     var autoUpdate by rememberSaveable { mutableStateOf(initial.autoUpdate) }
@@ -142,11 +158,30 @@ fun SubEditScreen(
     val confirmRemove = MmkvManager.decodeSettingsBool(AppConfig.PREF_CONFIRM_REMOVE, false)
     val scrollState = rememberScrollState()
 
+    fun parseCustomHeaders(text: String): Map<String, String>? {
+        if (text.isBlank()) return null
+        val map = mutableMapOf<String, String>()
+        text.lines().forEach { line ->
+            val trimmed = line.trim()
+            val colonIndex = trimmed.indexOf(':')
+            if (colonIndex > 0) {
+                val key = trimmed.substring(0, colonIndex).trim()
+                val value = trimmed.substring(colonIndex + 1).trim()
+                if (key.isNotEmpty()) {
+                    map[key] = value
+                }
+            }
+        }
+        return map.ifEmpty { null }
+    }
+
     fun buildSubItem(): SubscriptionItem {
         val subItem = MmkvManager.decodeSubscription(editSubId) ?: SubscriptionItem()
         subItem.remarks = remarks
         subItem.url = url
         subItem.userAgent = userAgent
+        subItem.hwid = hwid.ifBlank { null }
+        subItem.customHeaders = parseCustomHeaders(customHeadersText)
         subItem.filter = filter
         subItem.enabled = enabled
         subItem.autoUpdate = autoUpdate
@@ -201,6 +236,31 @@ fun SubEditScreen(
                 stringResource(R.string.sub_setting_user_agent),
                 userAgent,
                 { userAgent = it }
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                FormTextField(
+                    label = stringResource(R.string.sub_setting_hwid),
+                    value = hwid,
+                    onValueChange = { hwid = it },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(
+                    onClick = { hwid = Utils.generateHwid() },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    androidx.compose.material3.Text(stringResource(R.string.sub_setting_hwid_generate))
+                }
+            }
+            FormTextField(
+                label = stringResource(R.string.sub_setting_custom_headers),
+                value = customHeadersText,
+                onValueChange = { customHeadersText = it },
+                placeholder = stringResource(R.string.sub_setting_custom_headers_hint)
             )
             FormTextField(stringResource(R.string.sub_setting_filter), filter, { filter = it })
             SettingsSwitchItem(

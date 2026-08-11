@@ -163,6 +163,7 @@ object HttpUtil {
                 .header("User-agent", finalUserAgent)
                 .header("Connection", "close")
 
+            applyCustomHeaders(requestBuilder, request)
             applyEmbeddedBasicAuthHeader(currentUrl, requestBuilder)
 
             if (request.httpPort != 0 && !request.proxyUsername.isNullOrBlank() && !request.proxyPassword.isNullOrBlank()) {
@@ -216,6 +217,7 @@ object HttpUtil {
                 .header("User-agent", finalUserAgent)
                 .header("Connection", "close")
 
+            applyCustomHeaders(requestBuilder, request)
             applyEmbeddedBasicAuthHeader(currentUrl, requestBuilder)
 
             if (request.httpPort != 0 && !request.proxyUsername.isNullOrBlank() && !request.proxyPassword.isNullOrBlank()) {
@@ -253,6 +255,17 @@ object HttpUtil {
             }
         }
         throw IOException("Too many redirects")
+    }
+
+    private fun applyCustomHeaders(requestBuilder: Request.Builder, request: UrlContentRequest) {
+        if (!request.hwid.isNullOrBlank()) {
+            requestBuilder.header("x-hwid", request.hwid)
+        }
+        request.headers?.forEach { (name, value) ->
+            if (!name.isNullOrBlank()) {
+                requestBuilder.header(name.trim(), value.trim())
+            }
+        }
     }
 
     private fun applyEmbeddedBasicAuthHeader(rawUrl: String, requestBuilder: Request.Builder) {

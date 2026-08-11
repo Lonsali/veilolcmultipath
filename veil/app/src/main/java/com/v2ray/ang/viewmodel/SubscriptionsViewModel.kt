@@ -94,6 +94,9 @@ class SubscriptionsViewModel(application: Application) : BaseViewModel(applicati
                             )
                         )
                 }
+                if (result.hwidRejectedCount > 0) {
+                    toast(getString(R.string.title_hwid_rejected, result.hwidRejectedCount))
+                }
                 reload()
             } catch (cancelled: CancellationException) {
                 throw cancelled

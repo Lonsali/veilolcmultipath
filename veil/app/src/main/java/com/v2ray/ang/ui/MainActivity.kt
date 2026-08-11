@@ -9,11 +9,11 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.Gravity
 import android.view.View
-import android.widget.TextView
+import android.graphics.Color
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
@@ -21,7 +21,6 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.tabs.TabLayoutMediator
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
@@ -46,6 +45,8 @@ import com.v2ray.ang.handler.SpeedtestManager
 import com.v2ray.ang.handler.SubscriptionUpdater
 import com.v2ray.ang.service.CoreTunToggleService
 import com.v2ray.ang.ui.compose.AppTheme
+import com.v2ray.ang.ui.compose.ConnectionInfoSheet
+import com.v2ray.ang.ui.compose.ConnectionInfoSheetState
 import com.v2ray.ang.ui.compose.ExpressiveToolbarActions
 import com.v2ray.ang.ui.compose.ExpressiveBottomBar
 import com.v2ray.ang.ui.compose.ExpressiveBottomBarState
@@ -78,6 +79,7 @@ class MainActivity : HelperBaseActivity() {
     private var searchVisible by mutableStateOf(false)
     private var searchQuery by mutableStateOf("")
     private var bottomBarState by mutableStateOf(ExpressiveBottomBarState())
+    private var connectionInfoState by mutableStateOf(ConnectionInfoSheetState())
     private var currentSnackbar: com.google.android.material.snackbar.Snackbar? = null
 
     /**
@@ -124,8 +126,8 @@ class MainActivity : HelperBaseActivity() {
                 AppTheme {
                     ExpressiveToolbarActions(
                         onFilterClick = { toggleSearch() },
-                        onShowImportMenu = { anchor -> showImportPopupMenu(anchor) },
-                        onShowOverflowMenu = { anchor -> showOverflowPopupMenu(anchor) },
+                        onImportMenuAction = { actionId -> handleImportMenuAction(actionId) },
+                        onOverflowAction = { actionId -> handleOverflowAction(actionId) },
                         showSearchButton = searchButtonEnabled,
                     )
                 }
@@ -176,16 +178,20 @@ class MainActivity : HelperBaseActivity() {
     }
 
     private fun setupNavigationDrawer() {
-        val toggle = ActionBarDrawerToggle(
-            this,
-            binding.drawerLayout,
-            binding.toolbar,
-            R.string.navigation_drawer_open,
-            R.string.navigation_drawer_close
-        )
-        binding.drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
+        val drawerArrow = DrawerArrowDrawable(this)
+        binding.toolbar.navigationIcon = drawerArrow
+        binding.toolbar.setNavigationOnClickListener {
+            if (binding.drawerLayout.isDrawerVisible(GravityCompat.START)) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                binding.drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
         setupDrawerMenu()
+
+        val contentView = binding.drawerLayout.getChildAt(0)
+        binding.drawerLayout.setScrimColor(Color.TRANSPARENT)
+        binding.drawerLayout.setDrawerElevation(0f)
 
         applyAppFont()
 
@@ -197,12 +203,20 @@ class MainActivity : HelperBaseActivity() {
         onBackPressedDispatcher.addCallback(this, drawerBackCallback)
 
         binding.drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                val direction = if (drawerView.layoutDirection == View.LAYOUT_DIRECTION_RTL) -1f else 1f
+                contentView.translationX = drawerView.width * slideOffset * direction
+                contentView.alpha = 1f - 0.5f * slideOffset
+            }
+
             override fun onDrawerOpened(drawerView: View) {
                 drawerBackCallback.isEnabled = true
             }
 
             override fun onDrawerClosed(drawerView: View) {
                 drawerBackCallback.isEnabled = false
+                contentView.translationX = 0f
+                contentView.alpha = 1f
             }
         })
     }
@@ -241,6 +255,13 @@ class MainActivity : HelperBaseActivity() {
                         onTunToggle = ::handleTunToggle,
                         onTest = ::handleLayoutTestClick,
                         onConnectionInfo = ::showConnectionInfoSheet,
+                    )
+                    ConnectionInfoSheet(
+                        state = connectionInfoState,
+                        onDismiss = { connectionInfoState = connectionInfoState.copy(visible = false) },
+                        onCopyIp = ::copyConnectionInfoIp,
+                        onPing = ::pingFromConnectionInfo,
+                        onShare = ::shareFromConnectionInfo,
                     )
                 }
             }
@@ -326,6 +347,12 @@ class MainActivity : HelperBaseActivity() {
         }
         mainViewModel.netSpeed.observe(this) { (up, down) ->
             setSpeedText(up.toSpeedString(), down.toSpeedString())
+            if (connectionInfoState.visible) {
+                connectionInfoState = connectionInfoState.copy(
+                    downloadSpeed = down.toSpeedString(),
+                    uploadSpeed = up.toSpeedString(),
+                )
+            }
         }
         mainViewModel.connectionPing.observe(this) { ping ->
             if (!ping.isNullOrEmpty()) {
@@ -532,77 +559,59 @@ class MainActivity : HelperBaseActivity() {
     }
 
     private fun showConnectionInfoSheet() {
-        val sheetView = layoutInflater.inflate(R.layout.bottom_sheet_connection_info, null)
-        val dialog = BottomSheetDialog(this)
-        dialog.setContentView(sheetView)
-
-        val tvIp = sheetView.findViewById<TextView>(R.id.tv_sheet_ip)
-        val tvLocation = sheetView.findViewById<TextView>(R.id.tv_sheet_location)
-        val tvIsp = sheetView.findViewById<TextView>(R.id.tv_sheet_isp)
-        val tvDown = sheetView.findViewById<TextView>(R.id.tv_sheet_down)
-        val tvUp = sheetView.findViewById<TextView>(R.id.tv_sheet_up)
-        val btnCopyIp = sheetView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_sheet_copy_ip)
-        val btnPing = sheetView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_sheet_ping)
-        val btnShare = sheetView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_sheet_share)
-
         val speed = mainViewModel.netSpeed.value
-        tvDown.text = speed?.let { "↓ ${it.second.toSpeedString()}" } ?: "↓ 0 B/s"
-        tvUp.text = speed?.let { "↑ ${it.first.toSpeedString()}" } ?: "↑ 0 B/s"
-
-        // Copy the resolved external IP; disabled until the lookup below fills it in.
-        var resolvedIp: String? = null
-        btnCopyIp.isEnabled = false
-        btnCopyIp.setOnClickListener {
-            val ip = resolvedIp
-            if (!ip.isNullOrBlank() && ip != "-") {
-                Utils.setClipboard(this, ip)
-                toast(R.string.connection_info_ip_copied)
-            }
-        }
-
-        btnPing.setOnClickListener {
-            setTestState(getString(R.string.connection_test_testing))
-            mainViewModel.testCurrentServerRealPing()
-            dialog.dismiss()
-        }
-
-        btnShare.setOnClickListener {
-            val guid = MmkvManager.getSelectServer()
-            if (guid.isNullOrEmpty()) {
-                toastError(R.string.title_file_chooser)
-            } else if (AngConfigManager.share2Clipboard(this, guid) == 0) {
-                toast(R.string.toast_success)
-            } else {
-                toastError(R.string.toast_failure)
-            }
-        }
+        connectionInfoState = ConnectionInfoSheetState(
+            visible = true,
+            downloadSpeed = speed?.second?.toSpeedString() ?: "0 B/s",
+            uploadSpeed = speed?.first?.toSpeedString() ?: "0 B/s",
+        )
 
         lifecycleScope.launch {
             val detail = withContext(Dispatchers.IO) {
                 SpeedtestManager.getRemoteIPDetail()
             }
-            detail?.let { info ->
-                val ip = listOf(info.ip, info.clientIp, info.ip_addr, info.query)
-                    .firstOrNull { !it.isNullOrBlank() } ?: "-"
-                val location = listOfNotNull(info.city, info.region, info.country_name)
+            if (!connectionInfoState.visible) return@launch
+            val ip = detail?.let { info ->
+                listOf(info.ip, info.clientIp, info.ip_addr, info.query)
+                    .firstOrNull { !it.isNullOrBlank() }
+            } ?: "-"
+            val location = detail?.let { info ->
+                listOfNotNull(info.city, info.region, info.country_name)
                     .filter { it.isNotBlank() }
                     .joinToString(", ")
-                    .takeIf { it.isNotBlank() } ?: "-"
-                val isp = listOf(info.isp, info.organization, info.asn)
-                    .firstOrNull { !it.isNullOrBlank() } ?: "-"
-                tvIp.text = ip
-                tvLocation.text = location
-                tvIsp.text = isp
-                resolvedIp = ip
-                btnCopyIp.isEnabled = ip != "-"
-            } ?: run {
-                tvIp.text = "-"
-                tvLocation.text = "-"
-                tvIsp.text = "-"
-            }
+                    .takeIf { it.isNotBlank() }
+            } ?: "-"
+            val isp = detail?.let { info ->
+                listOf(info.isp, info.organization, info.asn)
+                    .firstOrNull { !it.isNullOrBlank() }
+            } ?: "-"
+            connectionInfoState = connectionInfoState.copy(ip = ip, location = location, isp = isp)
         }
+    }
 
-        dialog.show()
+    private fun copyConnectionInfoIp() {
+        val ip = connectionInfoState.ip
+        if (!ip.isNullOrBlank() && ip != "-") {
+            Utils.setClipboard(this, ip)
+            toast(R.string.connection_info_ip_copied)
+        }
+    }
+
+    private fun pingFromConnectionInfo() {
+        setTestState(getString(R.string.connection_test_testing))
+        mainViewModel.testCurrentServerRealPing()
+        connectionInfoState = connectionInfoState.copy(visible = false)
+    }
+
+    private fun shareFromConnectionInfo() {
+        val guid = MmkvManager.getSelectServer()
+        if (guid.isNullOrEmpty()) {
+            toastError(R.string.title_file_chooser)
+        } else if (AngConfigManager.share2Clipboard(this, guid) == 0) {
+            toast(R.string.toast_success)
+        } else {
+            toastError(R.string.toast_failure)
+        }
     }
 
     override fun onResume() {
@@ -632,75 +641,20 @@ class MainActivity : HelperBaseActivity() {
             true
         }
 
-        R.id.import_qrcode -> {
-            importQRcode()
-            true
-        }
-
-        R.id.import_clipboard -> {
-            importClipboard()
-            true
-        }
-
-        R.id.import_local -> {
-            importConfigLocal()
-            true
-        }
-
-        R.id.import_manually_policy_group -> {
-            importManually(EConfigType.POLICYGROUP.value)
-            true
-        }
-
-        R.id.import_manually_proxy_chain -> {
-            importManually(EConfigType.PROXYCHAIN.value)
-            true
-        }
-
-        R.id.import_manually_vmess -> {
-            importManually(EConfigType.VMESS.value)
-            true
-        }
-
-        R.id.import_manually_vless -> {
-            importManually(EConfigType.VLESS.value)
-            true
-        }
-
-        R.id.import_manually_ss -> {
-            importManually(EConfigType.SHADOWSOCKS.value)
-            true
-        }
-
-        R.id.import_manually_socks -> {
-            importManually(EConfigType.SOCKS.value)
-            true
-        }
-
-        R.id.import_manually_http -> {
-            importManually(EConfigType.HTTP.value)
-            true
-        }
-
-        R.id.import_manually_trojan -> {
-            importManually(EConfigType.TROJAN.value)
-            true
-        }
-
-        R.id.import_manually_wireguard -> {
-            importManually(EConfigType.WIREGUARD.value)
-            true
-        }
-
-        R.id.import_manually_hysteria2 -> {
-            importManually(EConfigType.HYSTERIA2.value)
-            true
-        }
-
-        R.id.import_manually_olcrtc -> {
-            importManually(EConfigType.OLCRTC.value)
-            true
-        }
+        R.id.import_qrcode,
+        R.id.import_clipboard,
+        R.id.import_local,
+        R.id.import_manually_policy_group,
+        R.id.import_manually_proxy_chain,
+        R.id.import_manually_vmess,
+        R.id.import_manually_vless,
+        R.id.import_manually_ss,
+        R.id.import_manually_socks,
+        R.id.import_manually_http,
+        R.id.import_manually_trojan,
+        R.id.import_manually_wireguard,
+        R.id.import_manually_hysteria2,
+        R.id.import_manually_olcrtc -> handleImportMenuAction(item.itemId)
 
         R.id.export_all -> {
             exportAll()
@@ -751,40 +705,72 @@ class MainActivity : HelperBaseActivity() {
         else -> super.onOptionsItemSelected(item)
     }
 
-    private fun showImportPopupMenu(anchor: View) {
-        val popup = android.widget.PopupMenu(this, anchor)
-        popup.menu.add(0, R.id.import_qrcode, 0, R.string.menu_item_import_config_qrcode)
-        popup.menu.add(0, R.id.import_clipboard, 0, R.string.menu_item_import_config_clipboard)
-        popup.menu.add(0, R.id.import_local, 0, R.string.menu_item_import_config_local)
-        popup.menu.add(0, R.id.import_manually_policy_group, 0, R.string.menu_item_import_config_policy_group)
-        popup.menu.add(0, R.id.import_manually_proxy_chain, 0, R.string.menu_item_import_config_proxy_chain)
-        popup.menu.add(0, R.id.import_manually_vmess, 0, R.string.menu_item_import_config_manually_vmess)
-        popup.menu.add(0, R.id.import_manually_vless, 0, R.string.menu_item_import_config_manually_vless)
-        popup.menu.add(0, R.id.import_manually_ss, 0, R.string.menu_item_import_config_manually_ss)
-        popup.menu.add(0, R.id.import_manually_socks, 0, R.string.menu_item_import_config_manually_socks)
-        popup.menu.add(0, R.id.import_manually_http, 0, R.string.menu_item_import_config_manually_http)
-        popup.menu.add(0, R.id.import_manually_trojan, 0, R.string.menu_item_import_config_manually_trojan)
-        popup.menu.add(0, R.id.import_manually_wireguard, 0, R.string.menu_item_import_config_manually_wireguard)
-        popup.menu.add(0, R.id.import_manually_hysteria2, 0, R.string.menu_item_import_config_manually_hysteria2)
-        popup.menu.add(0, R.id.import_manually_olcrtc, 0, R.string.menu_item_import_config_manually_olcrtc)
-        popup.setOnMenuItemClickListener { item -> onOptionsItemSelected(item) }
-        popup.show()
+    private fun handleImportMenuAction(actionId: Int): Boolean {
+        when (actionId) {
+            R.id.import_qrcode -> importQRcode()
+            R.id.import_clipboard -> importClipboard()
+            R.id.import_local -> importConfigLocal()
+            R.id.import_manually_policy_group -> importManually(EConfigType.POLICYGROUP.value)
+            R.id.import_manually_proxy_chain -> importManually(EConfigType.PROXYCHAIN.value)
+            R.id.import_manually_vmess -> importManually(EConfigType.VMESS.value)
+            R.id.import_manually_vless -> importManually(EConfigType.VLESS.value)
+            R.id.import_manually_ss -> importManually(EConfigType.SHADOWSOCKS.value)
+            R.id.import_manually_socks -> importManually(EConfigType.SOCKS.value)
+            R.id.import_manually_http -> importManually(EConfigType.HTTP.value)
+            R.id.import_manually_trojan -> importManually(EConfigType.TROJAN.value)
+            R.id.import_manually_wireguard -> importManually(EConfigType.WIREGUARD.value)
+            R.id.import_manually_hysteria2 -> importManually(EConfigType.HYSTERIA2.value)
+            R.id.import_manually_olcrtc -> importManually(EConfigType.OLCRTC.value)
+            else -> return false
+        }
+        return true
     }
 
-    private fun showOverflowPopupMenu(anchor: View) {
-        val popup = android.widget.PopupMenu(this, anchor)
-        popup.menu.add(0, R.id.search_view, 0, R.string.menu_item_search).setIcon(R.drawable.ic_search_24dp)
-        popup.menu.add(0, R.id.service_restart, 0, R.string.title_service_restart)
-        popup.menu.add(0, R.id.del_all_config, 0, R.string.title_del_all_config)
-        popup.menu.add(0, R.id.del_duplicate_config, 0, R.string.title_del_duplicate_config)
-        popup.menu.add(0, R.id.del_invalid_config, 0, R.string.title_del_invalid_config)
-        popup.menu.add(0, R.id.export_all, 0, R.string.title_export_all)
-        popup.menu.add(0, R.id.real_ping_all, 0, R.string.title_real_ping_all_server)
-        popup.menu.add(0, R.id.sort_by_test_results, 0, R.string.title_sort_by_test_results)
-        popup.menu.add(0, R.id.locate_selected_config, 0, R.string.title_locate_selected_config)
-        popup.menu.add(0, R.id.sub_update, 0, R.string.title_sub_update)
-        popup.setOnMenuItemClickListener { item -> onOptionsItemSelected(item) }
-        popup.show()
+    private fun handleOverflowAction(actionId: Int): Boolean {
+        return when (actionId) {
+            R.id.search_view -> {
+                toggleSearch()
+                true
+            }
+            R.id.service_restart -> {
+                restartV2Ray()
+                true
+            }
+            R.id.del_all_config -> {
+                delAllConfig()
+                true
+            }
+            R.id.del_duplicate_config -> {
+                delDuplicateConfig()
+                true
+            }
+            R.id.del_invalid_config -> {
+                delInvalidConfig()
+                true
+            }
+            R.id.export_all -> {
+                exportAll()
+                true
+            }
+            R.id.real_ping_all -> {
+                toast(getString(R.string.connection_test_testing_count, mainViewModel.serversCache.count()))
+                mainViewModel.testAllRealPing()
+                true
+            }
+            R.id.sort_by_test_results -> {
+                sortByTestResults()
+                true
+            }
+            R.id.locate_selected_config -> {
+                locateSelectedServer()
+                true
+            }
+            R.id.sub_update -> {
+                importConfigViaSub()
+                true
+            }
+            else -> false
+        }
     }
 
     private fun toggleSearch() {
@@ -911,6 +897,9 @@ class MainActivity : HelperBaseActivity() {
                             result.configCount, result.successCount, result.failureCount, result.skipCount
                         )
                     )
+                }
+                if (result.hwidRejectedCount > 0) {
+                    toast(getString(R.string.title_hwid_rejected, result.hwidRejectedCount))
                 }
                 if (result.configCount > 0) {
                     mainViewModel.reloadServerList()

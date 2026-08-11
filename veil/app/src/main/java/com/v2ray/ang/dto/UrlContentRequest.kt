@@ -6,7 +6,9 @@ data class UrlContentRequest(
     val httpPort: Int = 0,
     val proxyUsername: String? = null,
     val proxyPassword: String? = null,
-    val userAgent: String? = null
+    val userAgent: String? = null,
+    val hwid: String? = null,
+    val headers: Map<String, String>? = null
 )
 
 data class HttpResponseWithHeaders(
