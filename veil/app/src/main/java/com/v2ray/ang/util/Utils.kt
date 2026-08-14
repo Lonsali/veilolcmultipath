@@ -671,8 +671,8 @@ object Utils {
 
     fun formatBytes(bytes: Long): String {
         if (bytes <= 0) return "0 B"
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val unitIndex = (63 - bytes.countLeadingZeroBits()) / 10
+        val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB")
+        val unitIndex = ((63 - bytes.countLeadingZeroBits()) / 10).coerceAtMost(units.size - 1)
         val divisor = 1L shl (unitIndex * 10)
         val value = bytes.toDouble() / divisor
         if (value < 10.0 && unitIndex > 0) {

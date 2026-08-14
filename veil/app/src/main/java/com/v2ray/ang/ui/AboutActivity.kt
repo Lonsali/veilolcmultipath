@@ -63,6 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
@@ -136,11 +137,12 @@ fun AboutScreen(onBackClick: () -> Unit) {
                     onClick = { Utils.openUri(context, AppConfig.APP_URL) }
                 ),
                 AboutLinkItem(
-                    icon = painterResource(R.drawable.ic_feedback_24dp),
-                    title = stringResource(R.string.title_pref_feedback),
-                    subtitle = stringResource(R.string.summary_pref_feedback),
+                    icon = painterResource(R.drawable.ic_v2rayng_logo),
+                    title = stringResource(R.string.title_original_repo),
+                    subtitle = AppConfig.APP_ORIGINAL_URL.removePrefix("https://"),
                     external = true,
-                    onClick = { Utils.openUri(context, AppConfig.APP_ISSUES_URL) }
+                    iconSize = 18.dp,
+                    onClick = { Utils.openUri(context, AppConfig.APP_ORIGINAL_URL) }
                 ),
                 AboutLinkItem(
                     icon = painterResource(R.drawable.ic_telegram_24dp),
@@ -150,11 +152,11 @@ fun AboutScreen(onBackClick: () -> Unit) {
                     onClick = { Utils.openUri(context, AppConfig.TG_CHANNEL_URL) }
                 ),
                 AboutLinkItem(
-                    icon = painterResource(R.drawable.ic_source_code_24dp),
-                    title = stringResource(R.string.title_original_repo),
-                    subtitle = AppConfig.APP_ORIGINAL_URL.removePrefix("https://"),
+                    icon = painterResource(R.drawable.ic_feedback_24dp),
+                    title = stringResource(R.string.title_pref_feedback),
+                    subtitle = stringResource(R.string.summary_pref_feedback),
                     external = true,
-                    onClick = { Utils.openUri(context, AppConfig.APP_ORIGINAL_URL) }
+                    onClick = { Utils.openUri(context, AppConfig.APP_ISSUES_URL) }
                 ),
             )
             ExpressiveEntrance(index = 1) {
@@ -382,7 +384,8 @@ private data class AboutLinkItem(
     val title: String,
     val subtitle: String?,
     val external: Boolean,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
+    val iconSize: Dp = 24.dp
 )
 
 private val iconContainerColors: List<Pair<Color, Color>>
@@ -433,7 +436,8 @@ private fun AboutLinkGroup(
                             Icon(
                                 painter = item.icon,
                                 contentDescription = null,
-                                tint = contentColor
+                                tint = contentColor,
+                                modifier = Modifier.size(item.iconSize)
                             )
                         }
                     },

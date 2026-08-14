@@ -550,9 +550,9 @@
     <string name="title_about">About</string>
     <string name="title_source_code">Source code</string>
     <string name="title_oss_license">Open Source licenses</string>
-    <string name="title_tg_channel">Developer Telegram</string>
+    <string name="title_tg_channel">Developer\'s Telegram channel</string>
     <string name="title_original_repo">Original v2rayNG repository</string>
-    <string name="summary_app_fork">Veil is a fork of v2rayNG by 2dust</string>
+    <string name="summary_app_fork">v2rayNG fork by venterum</string>
     <string name="about_section_connect">Connect</string>
     <string name="about_section_legal">Legal</string>
     <string name="about_copied_to_clipboard">Copied to clipboard</string>
