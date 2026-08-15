@@ -1,25 +1,29 @@
 package com.v2ray.ang.core
 
 import android.content.Context
-import android.util.Log
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.Utils
-import mobile.LogWriter
 import mobile.Mobile
+import mobile.Runtime
 import mobile.SocketProtector
 import java.net.ServerSocket
 import kotlin.random.Random
 
 object OlcrtcManager {
 
+    private const val WAIT_READY_MS = 15000L
+    private const val STOP_TIMEOUT_MS = 5000L
+    private const val DEFAULT_VP8_FPS = 30L
+    private const val DEFAULT_VP8_BATCH_SIZE = 64L
+
     @Volatile
     var socketProtector: ((Int) -> Boolean)? = null
 
-    private var logWriterInstalled = false
+    private val runtime: Runtime by lazy { Mobile.new_() }
 
     private val protector = object : SocketProtector {
         override fun protect(fd: Long): Boolean {
@@ -27,23 +31,9 @@ object OlcrtcManager {
         }
     }
 
-    private val logWriter = object : LogWriter {
-        override fun writeLog(msg: String) {
-            val line = msg.trimEnd()
-            val priority = when {
-                line.startsWith("[D]") -> Log.DEBUG
-                line.startsWith("[I]") -> Log.INFO
-                line.startsWith("[Warning]") -> Log.WARN
-                line.startsWith("[Error]") -> Log.ERROR
-                else -> Log.INFO
-            }
-            Log.println(priority, "GoLog", line)
-        }
-    }
-
     val isRunning: Boolean
         get() = try {
-            Mobile.isRunning()
+            runtime.isRunning
         } catch (e: Exception) {
             false
         }
@@ -80,20 +70,27 @@ object OlcrtcManager {
         config.serverPort = socksPort.toString()
 
         try {
-            installCallbacks()
-            Mobile.setTransport(transport)
-            Mobile.setDNS(resolveOlcrtcDns(context))
-            Mobile.setSocksListenHost(socksHost)
-            Mobile.setVP8Options(fps.toLong(), batchSize.toLong())
+            runtime.setProtector(protector)
+            runtime.setProvider(carrier)
+            runtime.setTransport(transport)
+            runtime.setRoom(roomId)
+            runtime.setKey(keyHex)
+            runtime.setDNS(resolveOlcrtcDns(context))
+            runtime.setSocksListenHost(socksHost)
+            runtime.setSocksPort(socksPort.toLong())
+            runtime.setDeviceID(clientId)
+            if (fps > 0 || batchSize > 0) {
+                runtime.setVP8Options(
+                    (if (fps > 0) fps.toLong() else DEFAULT_VP8_FPS),
+                    (if (batchSize > 0) batchSize.toLong() else DEFAULT_VP8_BATCH_SIZE)
+                )
+            }
 
-            LogUtil.d(AppConfig.TAG, "OlcrtcManager: startWithTransport carrier=$carrier transport=$transport room=$roomId client=$clientId key=${keyHex.take(8)}... socks=${socksHost}:${socksPort}")
-            Mobile.startWithTransport(
-                carrier, transport, roomId, clientId, keyHex,
-                socksPort.toLong(), "", ""
-            )
+            LogUtil.d(AppConfig.TAG, "OlcrtcManager: start carrier=$carrier transport=$transport room=$roomId client=$clientId key=${keyHex.take(8)}... socks=${socksHost}:${socksPort}")
+            runtime.start()
 
             LogUtil.d(AppConfig.TAG, "OlcrtcManager: waitReady (15s)")
-            Mobile.waitReady(15000)
+            runtime.waitReady(WAIT_READY_MS)
             LogUtil.i(AppConfig.TAG, "OlcrtcManager: started on ${socksHost}:${socksPort}")
             return true
         } catch (e: Exception) {
@@ -104,7 +101,7 @@ object OlcrtcManager {
 
     fun stop() {
         try {
-            Mobile.stop()
+            runtime.stop(STOP_TIMEOUT_MS)
             LogUtil.i(AppConfig.TAG, "OlcrtcManager: stopped")
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "OlcrtcManager: stop failed", e)
@@ -154,9 +151,9 @@ object OlcrtcManager {
         val socksPort = (config.serverPort ?: AppConfig.PORT_OLCRTC_SOCKS).toLongOrNull() ?: AppConfig.PORT_OLCRTC_SOCKS.toLong()
 
         return try {
-            val result = Mobile.ping(
+            val result = runtime.ping(
                 carrier, transport, roomId, clientId, keyHex,
-                socksPort, timeoutSec.toLong(), "", 0L, 0L
+                socksPort, timeoutSec.toLong() * 1000, "", 0L, 0L
             )
             result > 0
         } catch (e: Exception) {
@@ -174,27 +171,14 @@ object OlcrtcManager {
         val socksPort = (config.serverPort ?: AppConfig.PORT_OLCRTC_SOCKS).toLongOrNull() ?: AppConfig.PORT_OLCRTC_SOCKS.toLong()
 
         return try {
-            val result = Mobile.check(
+            val result = runtime.check(
                 carrier, transport, roomId, clientId, keyHex,
-                socksPort, 15L, 0L, 0L
+                socksPort, WAIT_READY_MS, 0L, 0L
             )
             if (result >= 0) "ok" else "error: $result"
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "OlcrtcManager: check failed: ${e.message}", e)
             e.message ?: "check failed"
-        }
-    }
-
-    private fun installCallbacks() {
-        Mobile.setProtector(protector)
-        Mobile.setProviders()
-        if (!logWriterInstalled) {
-            try {
-                Mobile.setLogWriter(logWriter)
-                logWriterInstalled = true
-            } catch (e: Exception) {
-                LogUtil.w(AppConfig.TAG, "OlcrtcManager: failed to install LogWriter", e)
-            }
         }
     }
 

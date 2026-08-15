@@ -29,6 +29,9 @@ import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.Utils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Collections
@@ -37,10 +40,18 @@ import java.util.regex.PatternSyntaxException
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var serverList = mutableListOf<String>() // MmkvManager.decodeServerList()
     var subscriptionId: String = MmkvManager.decodeSettingsString(AppConfig.CACHE_SUBSCRIPTION_ID, "").orEmpty()
+    private val _subscriptionIdFlow = MutableStateFlow(subscriptionId)
+    val subscriptionIdFlow: StateFlow<String> = _subscriptionIdFlow.asStateFlow()
     var keywordFilter = ""
     val serversCache = mutableListOf<ServersCache>()
+    private val _serversCacheFlow = MutableStateFlow<List<ServersCache>>(emptyList())
+    val serversCacheFlow: StateFlow<List<ServersCache>> = _serversCacheFlow.asStateFlow()
+    private val _isRunningFlow = MutableStateFlow(false)
+    val isRunningFlow: StateFlow<Boolean> = _isRunningFlow.asStateFlow()
     val isRunning by lazy { MutableLiveData<Boolean>() }
     val updateListAction by lazy { MutableLiveData<Int>() }
+    private val _updateListActionFlow = MutableStateFlow(0)
+    val updateListActionFlow: StateFlow<Int> = _updateListActionFlow.asStateFlow()
     val updateTestResultAction by lazy { MutableLiveData<String>() }
     val netSpeed by lazy { MutableLiveData<Pair<Long, Long>>() }
     val connectionPing by lazy { MutableLiveData<String>() }
@@ -53,7 +64,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * `registerReceiver(Context, BroadcastReceiver, IntentFilter, int)`.
      */
     fun startListenBroadcast() {
-        isRunning.value = false
+        setRunningState(false)
         val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY)
         ContextCompat.registerReceiver(getApplication(), mMsgReceiver, mFilter, Utils.receiverFlags())
         MessageUtil.sendMsg2Service(getApplication(), AppConfig.MSG_REGISTER_CLIENT, "")
@@ -79,7 +90,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         updateCache()
-        updateListAction.value = -1
+        setUpdateListAction(-1)
     }
 
     /**
@@ -93,6 +104,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (index >= 0) {
             serversCache.removeAt(index)
         }
+        emitServersCache()
     }
 
     /**
@@ -103,13 +115,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun swapServer(fromPosition: Int, toPosition: Int) {
         if (subscriptionId.isEmpty()) {
             swapServerInAllTab(fromPosition, toPosition)
-            return
+        } else {
+            Collections.swap(serverList, fromPosition, toPosition)
+            Collections.swap(serversCache, fromPosition, toPosition)
+
+            MmkvManager.encodeServerList(serverList, subscriptionId)
         }
-
-        Collections.swap(serverList, fromPosition, toPosition)
-        Collections.swap(serversCache, fromPosition, toPosition)
-
-        MmkvManager.encodeServerList(serverList, subscriptionId)
+        emitServersCache()
     }
 
     private fun swapServerInAllTab(fromPosition: Int, toPosition: Int) {
@@ -159,6 +171,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 serversCache.add(ServersCache(guid, profile))
             }
         }
+        emitServersCache()
+    }
+
+    /**
+     * Publishes a snapshot of [serversCache] to [serversCacheFlow] so Compose
+     * consumers recompose when the list changes.
+     */
+    private fun emitServersCache() {
+        _serversCacheFlow.value = serversCache.toList()
+    }
+
+    /**
+     * Updates both the LiveData (consumed by MainActivity) and the StateFlow
+     * (consumed by Compose) so both stay in sync for the running state.
+     */
+    private fun setRunningState(running: Boolean) {
+        isRunning.value = running
+        _isRunningFlow.value = running
+    }
+
+    /**
+     * Updates both the LiveData and StateFlow used to signal a list refresh.
+     */
+    private fun setUpdateListAction(position: Int) {
+        updateListAction.value = position
+        _updateListActionFlow.value = position
     }
 
     /**
@@ -202,7 +240,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             TestServiceMessage(key = AppConfig.MSG_MEASURE_CONFIG_CANCEL)
         )
         MmkvManager.clearAllTestDelayResults(serversCache.map { it.guid }.toList())
-        updateListAction.value = -1
+        setUpdateListAction(-1)
 
         viewModelScope.launch(Dispatchers.Default) {
             if (serversCache.isEmpty()) {
@@ -235,6 +273,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             subscriptionId = id
             MmkvManager.encodeSettings(AppConfig.CACHE_SUBSCRIPTION_ID, subscriptionId)
         }
+        _subscriptionIdFlow.value = subscriptionId
         reloadServerList()
     }
 
@@ -461,18 +500,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         override fun onReceive(ctx: Context?, intent: Intent?) {
             when (intent?.getIntExtra("key", 0)) {
                 AppConfig.MSG_STATE_RUNNING -> {
-                    isRunning.value = true
+                    setRunningState(true)
                 }
 
                 AppConfig.MSG_STATE_NOT_RUNNING -> {
-                    isRunning.value = false
+                    setRunningState(false)
                     netSpeed.value = 0L to 0L
                     connectionPing.value = ""
                     connectionIp.value = ""
                 }
 
                 AppConfig.MSG_STATE_START_SUCCESS -> {
-                    isRunning.value = true
+                    setRunningState(true)
                 }
 
                 AppConfig.MSG_STATE_START_FAILURE -> {
@@ -482,11 +521,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     } else {
                         getApplication<AngApplication>().getString(R.string.toast_services_failure)
                     }
-                    isRunning.value = false
+                    setRunningState(false)
                 }
 
                 AppConfig.MSG_STATE_STOP_SUCCESS -> {
-                    isRunning.value = false
+                    setRunningState(false)
                     netSpeed.value = 0L to 0L
                     connectionPing.value = ""
                     connectionIp.value = ""
@@ -521,7 +560,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 AppConfig.MSG_MEASURE_CONFIG_SUCCESS -> {
                     val content = intent.getStringExtra("content")
-                    updateListAction.value = getPosition(content ?: "")
+                    setUpdateListAction(getPosition(content ?: ""))
                 }
 
                 AppConfig.MSG_MEASURE_CONFIG_NOTIFY -> {

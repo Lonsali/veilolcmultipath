@@ -408,6 +408,7 @@ class MainActivity : HelperBaseActivity() {
     private fun setupGroupTab() {
         val groups = mainViewModel.getSubscriptions(this)
         groupPagerAdapter.update(groups)
+        binding.viewPager.offscreenPageLimit = groups.size.coerceAtLeast(1)
 
         tabMediator?.detach()
         tabMediator = TabLayoutMediator(binding.tabGroup, binding.viewPager) { tab, position ->

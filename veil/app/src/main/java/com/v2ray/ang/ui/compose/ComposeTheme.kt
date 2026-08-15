@@ -69,6 +69,9 @@ private val DarkColorScheme = darkColorScheme(
 // Accent color used by active FAB / progress indicators.
 val colorFabActive = Color(0xFFf97910)
 
+// Green used by the "connected" dot on the selected running server card.
+val colorConnected = Color(0xFF009966)
+
 // Divider colors for list dividers.
 val dividerColorLight = Color(0xFFE0E0E0)
 val dividerColorDark = Color(0xFF424242)

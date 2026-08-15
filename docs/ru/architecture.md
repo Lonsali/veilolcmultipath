@@ -59,7 +59,7 @@ veil использует **два независимых Go-модуля**, с�
 
 1. `CoreServiceManager.doStartCoreLoop()` определяет `EConfigType.OLCRTC`
 2. Запускается `OlcrtcManager.start(config)`:
-   - Запускает Go-процесс olcRTC через `Mobile.startWithTransport()`
+   - Запускает Go-клиент olcRTC через instance-based API `mobile.Runtime` (`Mobile.new_()` → сеттеры → `start()`/`waitReady()`)
    - Открывает SOCKS5-сервер на `127.0.0.1:{port}`
 3. Xray core запускается со стандартным конфигом
 4. `CoreOutboundBuilder.toOutboundOlcrtc()` создаёт SOCKS5 outbound на `127.0.0.1:{port}`

@@ -59,7 +59,7 @@ All Xray and olcRTC components run in the same Android process:
 
 1. `CoreServiceManager.doStartCoreLoop()` detects `EConfigType.OLCRTC`
 2. `OlcrtcManager.start(config)` is called:
-   - Starts the olcRTC Go process via `Mobile.startWithTransport()`
+   - Starts the olcRTC Go client via the instance-based `mobile.Runtime` API (`Mobile.new_()` → setters → `start()`/`waitReady()`)
    - Opens a SOCKS5 server on `127.0.0.1:{port}`
 3. Xray core starts with a standard config
 4. `CoreOutboundBuilder.toOutboundOlcrtc()` creates a SOCKS5 outbound to `127.0.0.1:{port}`
