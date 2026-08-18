@@ -83,41 +83,54 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
+    # A fork has no signing secrets, so the release path would fail on an empty
+    # keystore. Fall back to a debug build there: it installs the same way and
+    # is what a private build actually needs.
     - name: Decode Keystore
+      if: ${{ secrets.APP_KEYSTORE_BASE64 != '' }}
       uses: timheuer/base64-to-file@v2.0.0
       id: android_keystore
       with:
         fileName: "android_keystore.jks"
         encodedString: ${{ secrets.APP_KEYSTORE_BASE64 }}
 
-    - name: Build APK
+    - name: Build signed release APK
+      if: ${{ secrets.APP_KEYSTORE_BASE64 != '' }}
       run: |
         cd ${{ github.workspace }}/veil
         echo "sdk.dir=${ANDROID_HOME}" > local.properties
         chmod 755 gradlew
         ./gradlew licenseFdroidReleaseReport
         ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ steps.android_keystore.outputs.filePath }} -Pandroid.injected.signing.store.password=${{ secrets.APP_KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.APP_KEYSTORE_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.APP_KEY_PASSWORD }}
+
+    - name: Build debug APK
+      if: ${{ secrets.APP_KEYSTORE_BASE64 == '' }}
+      run: |
+        cd ${{ github.workspace }}/veil
+        echo "sdk.dir=${ANDROID_HOME}" > local.properties
+        chmod 755 gradlew
+        ./gradlew assembleDebug
     
     - name: Upload arm64-v8a APK
       uses: actions/upload-artifact@v7
       if: ${{  success() }}
       with:
         name: arm64-v8a
-        path: ${{ github.workspace }}/veil/app/build/outputs/apk/*/release/*arm64-v8a*.apk
+        path: ${{ github.workspace }}/veil/app/build/outputs/apk/**/*arm64-v8a*.apk
 
     - name: Upload armeabi-v7a APK
       uses: actions/upload-artifact@v7
       if: ${{  success() }}
       with:
         name: armeabi-v7a
-        path: ${{ github.workspace }}/veil/app/build/outputs/apk/*/release/*armeabi-v7a*.apk
+        path: ${{ github.workspace }}/veil/app/build/outputs/apk/**/*armeabi-v7a*.apk
 
     - name: Upload x86 APK
       uses: actions/upload-artifact@v7
       if: ${{  success() }}
       with:
         name: x86-apk
-        path: ${{ github.workspace }}/veil/app/build/outputs/apk/*/release/*x86*.apk
+        path: ${{ github.workspace }}/veil/app/build/outputs/apk/**/*x86*.apk
 
     - name: Upload to release
       uses: svenstaro/upload-release-action@v2
