@@ -447,10 +447,10 @@
         <item>دور زده نشود</item>
     </string-array>
 
-    <string-array name="outbound_domain_resolve_method">
-        <item>Do not resolve</item>
-        <item>Resolve and add to DNS Hosts</item>
-        <item>Resolve and replace domain</item>
+        <string-array name="outbound_domain_resolve_method">
+        <item>عدم حل</item>
+        <item>حل و افزودن به DNS Hosts</item>
+        <item>حل و جایگزینی دامنه</item>
     </string-array>
     <string-array name="policy_group_type">
         <item>کمترین پینگ</item>
@@ -464,4 +464,145 @@
         <item>WebDAV</item>
     </string-array>
 
+    <string name="about_copied_to_clipboard">در کلیپبورد کپی شد</string>
+    <string name="about_logo_description">لوگوی Veil</string>
+    <string name="about_section_connect">ارتباط</string>
+    <string name="about_section_legal">قانونی</string>
+    <string name="about_section_update">بهروزرسانی</string>
+    <string name="action_close">بستن</string>
+    <string name="action_delete">حذف</string>
+    <string name="add_config_clipboard">کلیپبورد</string>
+    <string name="add_config_create_section">ایجاد دستی</string>
+    <string name="add_config_file">فایل</string>
+    <string name="add_config_http">HTTP</string>
+    <string name="add_config_hysteria2">Hysteria2</string>
+    <string name="add_config_import_section">وارد کردن</string>
+    <string name="add_config_olcrtc">olcRTC</string>
+    <string name="add_config_policy_group">گروه سیاست</string>
+    <string name="add_config_policy_group_caption">تعادل یا جایگزینی بین سرورها</string>
+    <string name="add_config_protocol_section">پروتکل سرور</string>
+    <string name="add_config_proxy_chain">زنجیره پروکسی</string>
+    <string name="add_config_proxy_chain_caption">مسیریابی از طریق چند سرور</string>
+    <string name="add_config_qr">کد QR</string>
+    <string name="add_config_shadowsocks">Shadowsocks</string>
+    <string name="add_config_socks">SOCKS</string>
+    <string name="add_config_subtitle">یک کانفیگ وارد کنید یا به صورت دستی بسازید</string>
+    <string name="add_config_trojan">Trojan</string>
+    <string name="add_config_vless">VLESS</string>
+    <string name="add_config_vmess">VMess</string>
+    <string name="add_config_wireguard">WireGuard</string>
+    <string name="app_icon_default">کلاسیک</string>
+    <string name="app_icon_default_desc">ظاهر اصلی Veil</string>
+    <string name="app_icon_summer">تابستان</string>
+    <string name="app_icon_summer_desc">روشن و گرم</string>
+    <string name="app_icon_wink">چشمک</string>
+    <string name="app_icon_wink_desc">بازیگوش و شیطان</string>
+    <string name="app_name">Veil</string>
+    <string name="app_picker_unknown_app">برنامه ناشناخته (UID نامشخص)</string>
+    <string name="app_widget_action_connect">اتصال</string>
+    <string name="app_widget_action_disconnect">قطع اتصال</string>
+    <string name="app_widget_action_reload">اتصال مجدد</string>
+    <string name="app_widget_description">Veil را از صفحه اصلی روشن/خاموش کنید</string>
+    <string name="app_widget_status_connected">محافظت شده</string>
+    <string name="app_widget_status_disconnected">آماده</string>
+    <string name="collapse_group">جمع کردن گروه</string>
+    <string name="confirm_delete_asset_file">آیا مطمئن هستید که فایل منبع "%1$s" را حذف میکنید؟</string>
+    <string name="confirm_delete_asset_source">آیا مطمئن هستید که این منبع را حذف میکنید؟</string>
+    <string name="confirm_delete_profile">آیا مطمئن هستید که این پروفایل را حذف میکنید؟</string>
+    <string name="confirm_delete_proxy_chain_member">آیا مطمئن هستید که این عضو زنجیره را حذف میکنید؟</string>
+    <string name="connection_info_action_copy_ip">کپی IP</string>
+    <string name="connection_info_action_ping">پینگ</string>
+    <string name="connection_info_action_share">اشتراکگذاری</string>
+    <string name="connection_info_download">دانلود</string>
+    <string name="connection_info_ip">IP خارجی</string>
+    <string name="connection_info_ip_copied">IP در کلیپبورد کپی شد</string>
+    <string name="connection_info_isp">ISP</string>
+    <string name="connection_info_loading">در حال شناسایی…</string>
+    <string name="connection_info_location">موقعیت</string>
+    <string name="connection_info_speed">سرعت</string>
+    <string name="connection_info_title">اطلاعات اتصال</string>
+    <string name="connection_info_upload">آپلود</string>
+    <string name="expand_group">باز کردن گروه</string>
+    <string name="menu_item_delete">حذف</string>
+    <string name="menu_item_edit">ویرایش</string>
+    <string name="menu_item_import_config_manually_olcrtc">افزودن [olcRTC]</string>
+    <string name="menu_item_select_russian_apps">انتخاب برنامههای روسی</string>
+    <string name="menu_item_share">اشتراکگذاری</string>
+    <string name="olcrtc_hint_client_id">در صورت خالی بودن UUID خودکار</string>
+    <string name="olcrtc_hint_server_url">meet.egovm.ru</string>
+    <string name="olcrtc_lab_carrier">حامل (ارائهدهنده احراز هویت)</string>
+    <string name="olcrtc_lab_client_id">شناسه کلاینت (شناسه دستگاه)</string>
+    <string name="olcrtc_lab_engine">پارامترهای انتقال (key=value&amp;...)</string>
+    <string name="olcrtc_lab_key_hex">کلید رمزنگاری (64 کاراکتر هگز)</string>
+    <string name="olcrtc_lab_room_id">شناسه اتاق</string>
+    <string name="olcrtc_lab_server_url">آدرس سرور (host[:port] برای jitsi/telemost)</string>
+    <string name="olcrtc_lab_transport">انتقال</string>
+    <string name="routing_settings_outbound_tag_hint">proxy / direct / block / &lt;remarks&gt;</string>
+    <string name="routing_settings_process">فرآیند (نام پکیج — فقط هنگام استفاده از Xray TUN با routeOnly فعال و اندروید 10+ پشتیبانی میشود)</string>
+    <string name="server_lab_browser_dialer">فعالسازی Browser Dialer</string>
+    <string name="server_lab_browser_dialer_tip">فقط خروجی xhttp (packet-up) و ws را پشتیبانی میکند؛ تنظیمات مرتبط با TLS ممکن است نادیده گرفته شوند یا تداخل کنند</string>
+    <string name="sub_setting_custom_headers">هدرهای HTTP سفارشی</string>
+    <string name="sub_setting_custom_headers_hint">نام: مقدار (در هر خط یک هدر)</string>
+    <string name="sub_setting_hwid">HWID (شناسه دستگاه)</string>
+    <string name="sub_setting_hwid_generate">تولید</string>
+    <string name="sub_setting_hwid_validation">HWID باید 10-64 کاراکتر از a-z, A-Z, 0-9, =, - باشد</string>
+    <string name="summary_app_fork">فورک v2rayNG توسط venterum</string>
+    <string name="summary_app_icon">ظاهر Veil را در صفحه اصلی انتخاب کنید</string>
+    <string name="summary_pref_add_to_telegram">افزودن پروکسی SOCKS5 محلی به تلگرام</string>
+    <string name="summary_pref_auto_test_after_update_subscription">تست خودکار زمان زیادی میبرد. در صورت فعال بودن، کار در پسزمینه اجرا میشود؛ در غیر این صورت در صفحه فعلی.</string>
+    <string name="summary_pref_dynamic_color">استفاده از رنگهای Material You از والپیپر سیستم (اندروید 12+)</string>
+    <string name="summary_pref_google_sans">استفاده از فونت Google Sans Flex به جای فونت پیشفرض دستگاه. فقط زمانی که زبان برنامه انگلیسی است در دسترس است.</string>
+    <string name="summary_pref_olcrtc_dns">برای استفاده از DNS ارائهدهنده خالی بگذارید</string>
+    <string name="summary_pref_olcrtc_dns_auto">DNS ارائهدهنده (خودکار)</string>
+    <string name="summary_pref_server_card_style">کارت فشرده با منوی بیشتر. برای کارت کلاسیک با دکمههای عملیات غیرفعال کنید.</string>
+    <string name="summary_pref_server_search_button">نمایش آیکون جستجو در نوار ابزار فهرست سرورها. جستجو در منوی بیشتر نیز موجود است.</string>
+    <string name="summary_pref_socks_generate_credentials">ایجاد نام کاربری و رمز عبور تصادفی</string>
+    <string name="summary_pref_speed_lock_screen">به جای مخفیکردن محتوا، بهروزرسانی زنده را در صفحه قفل نمایان نگه دارید.</string>
+    <string name="summary_pref_speed_status_bar_live">نمایش سرعت فعلی به صورت بهروزرسانی زنده در نوار وضعیت و سایه اعلان (اندروید 16+).</string>
+    <string name="summary_pref_speed_toolbar_enabled">نمایش سرعت آپلود/دانلود فعلی در نوار ابزار پایین.</string>
+    <string name="summary_root_lan_sharing">مسیریابی دستگاههای هاتاسپات وایفای و USB از طریق VPN</string>
+    <string name="summary_root_mode_enabled">فعالسازی پروکسی شفاف سطح پایین با دسترسی روت. این حالت VPN استاندارد اندروید را دور میزند و مستقیماً تمام ترافیک شبکه را در دست میگیرد. پس از فعالسازی، حالت عادی، مسیریابی هر برنامه و تنظیمات مرتبط VPN کاملاً بیاثر میشوند.</string>
+    <string name="summary_scan_qrcode">برای باز کردن دوربین اسکن روی صفحه کلیک کنید</string>
+    <string name="title_app_icon">آیکون برنامه</string>
+    <string name="title_drawer_section_main">عمومی</string>
+    <string name="title_drawer_section_more">بیشتر</string>
+    <string name="title_expire">انقضا: %1$s</string>
+    <string name="title_hwid_rejected">سقف دستگاههای HWID برای %d اشتراک پر شده است</string>
+    <string name="title_kill_app">پایان برنامه</string>
+    <string name="title_mode_settings">تنظیمات حالت</string>
+    <string name="title_original_repo">مخزن اصلی v2rayNG</string>
+    <string name="title_pref_add_to_telegram">افزودن به تلگرام</string>
+    <string name="title_pref_auto_test_after_update_subscription">تست خودکار پس از بهروزرسانی اشتراک</string>
+    <string name="title_pref_dynamic_color">رنگهای پویا</string>
+    <string name="title_pref_fragment_maxsplit">حداکثر تقسیم قطعه</string>
+    <string name="title_pref_google_sans">استفاده از Google Sans</string>
+    <string name="title_pref_olcrtc_dns">DNS olcRTC (ip:port)</string>
+    <string name="title_pref_server_card_style">سبک سرور فشرده</string>
+    <string name="title_pref_server_search_button">نمایش دکمه جستجو</string>
+    <string name="title_pref_socks_generate_credentials">ایجاد اعتبارنامه تصادفی</string>
+    <string name="title_pref_speed_lock_screen">نمایش در صفحه قفل</string>
+    <string name="title_pref_speed_status_bar_live">استفاده از بهروزرسانی زنده</string>
+    <string name="title_pref_speed_toolbar_enabled">نمایش سرعت در نوار ابزار</string>
+    <string name="title_root_lan_sharing">اشتراک LAN/تیترینگ (کاربران روت)</string>
+    <string name="title_root_mode_enabled">حالت روت فعال (کاربران روت)</string>
+    <string name="title_support_url">پشتیبانی</string>
+    <string name="title_traffic">ترافیک</string>
+    <string name="title_tun_disabled">TUN غیرفعال</string>
+    <string name="title_tun_enabled">TUN فعال</string>
+    <string name="title_web_page_url">وبسایت</string>
+    <string name="toast_allow_insecure_deprecated">هشدار: رد کردن تأیید گواهی «allowInsecure» در آگوست 2026 غیرفعال میشود. لطفاً در اسرع وقت از اثر انگشت گواهی استفاده کنید.</string>
+    <string name="toast_root_required">برای این قابلیت دسترسی روت لازم است</string>
+    <string name="toast_socks_credentials_generated">اعتبارنامه تصادفی ایجاد شد</string>
+    <string name="toggle_tun_off">TUN خاموش</string>
+    <string name="toggle_tun_on">TUN روشن</string>
+    <string name="update_auto_check">بررسی خودکار بهروزرسانی</string>
+    <string name="update_auto_check_summary">هنگام راهاندازی برنامه نسخههای جدید را بررسی کنید</string>
+    <string name="update_check_failed">بررسی ناموفق بود</string>
+    <string name="update_current_version">نسخه فعلی</string>
+    <string name="update_release_notes">یادداشتهای انتشار</string>
+    <string-array name="browser_dialer_mode">
+        <item>غیرفعال</item>
+        <item>OkHttp</item>
+        <item>WebView</item>
+    </string-array>
 </resources>

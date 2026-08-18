@@ -437,27 +437,174 @@
         <item>Sáng</item>
         <item>Tối</item>
     </string-array>
-    <string-array name="vpn_bypass_lan">
-        <item>Follow config</item>
-        <item>Bypass</item>
-        <item>Not Bypass</item>
+        <string-array name="vpn_bypass_lan">
+        <item>Theo cấu hình</item>
+        <item>Bỏ qua</item>
+        <item>Không bỏ qua</item>
     </string-array>
 
-    <string-array name="outbound_domain_resolve_method">
-        <item>Do not resolve</item>
-        <item>Resolve and add to DNS Hosts</item>
-        <item>Resolve and replace domain</item>
+        <string-array name="outbound_domain_resolve_method">
+        <item>Không phân giải</item>
+        <item>Phân giải và thêm vào DNS Hosts</item>
+        <item>Phân giải và thay thế tên miền</item>
     </string-array>
-    <string-array name="policy_group_type">
-        <item>Least Ping</item>
-        <item>Least Load</item>
-        <item>Random</item>
-        <item>Round Robin</item>
+        <string-array name="policy_group_type">
+        <item>Ping thấp nhất</item>
+        <item>Tải thấp nhất</item>
+        <item>Ngẫu nhiên</item>
+        <item>Vòng tròn</item>
     </string-array>
 
-    <string-array name="config_backup_options">
-        <item>Local</item>
+        <string-array name="config_backup_options">
+        <item>Cục bộ</item>
         <item>WebDAV</item>
     </string-array>
 
+    <string name="about_copied_to_clipboard">Đã sao chép vào clipboard</string>
+    <string name="about_logo_description">Logo Veil</string>
+    <string name="about_section_connect">Kết nối</string>
+    <string name="about_section_legal">Pháp lý</string>
+    <string name="about_section_update">Cập nhật</string>
+    <string name="action_close">Đóng</string>
+    <string name="action_delete">Xóa</string>
+    <string name="add_config_clipboard">Clipboard</string>
+    <string name="add_config_create_section">Tạo thủ công</string>
+    <string name="add_config_file">Tệp</string>
+    <string name="add_config_http">HTTP</string>
+    <string name="add_config_hysteria2">Hysteria2</string>
+    <string name="add_config_import_section">Nhập</string>
+    <string name="add_config_olcrtc">olcRTC</string>
+    <string name="add_config_policy_group">Nhóm chính sách</string>
+    <string name="add_config_policy_group_caption">Cân bằng hoặc chuyển đổi dự phòng giữa các máy chủ</string>
+    <string name="add_config_protocol_section">Giao thức máy chủ</string>
+    <string name="add_config_proxy_chain">Chuỗi proxy</string>
+    <string name="add_config_proxy_chain_caption">Định tuyến qua nhiều máy chủ</string>
+    <string name="add_config_qr">Mã QR</string>
+    <string name="add_config_shadowsocks">Shadowsocks</string>
+    <string name="add_config_socks">SOCKS</string>
+    <string name="add_config_subtitle">Nhập cấu hình hoặc tạo thủ công</string>
+    <string name="add_config_trojan">Trojan</string>
+    <string name="add_config_vless">VLESS</string>
+    <string name="add_config_vmess">VMess</string>
+    <string name="add_config_wireguard">WireGuard</string>
+    <string name="app_icon_default">Cổ điển</string>
+    <string name="app_icon_default_desc">Giao diện Veil gốc</string>
+    <string name="app_icon_summer">Mùa hè</string>
+    <string name="app_icon_summer_desc">Tươi sáng và ấm áp</string>
+    <string name="app_icon_wink">Nháy mắt</string>
+    <string name="app_icon_wink_desc">Tinh nghịch và vui nhộn</string>
+    <string name="app_name">Veil</string>
+    <string name="app_picker_unknown_app">Ứng dụng không xác định (UID chưa nhận diện)</string>
+    <string name="app_widget_action_connect">Kết nối</string>
+    <string name="app_widget_action_disconnect">Ngắt kết nối</string>
+    <string name="app_widget_action_reload">Kết nối lại</string>
+    <string name="app_widget_description">Bật/tắt Veil từ màn hình chính</string>
+    <string name="app_widget_status_connected">Được bảo vệ</string>
+    <string name="app_widget_status_disconnected">Sẵn sàng</string>
+    <string name="collapse_group">Thu gọn nhóm</string>
+    <string name="confirm_delete_asset_file">Bạn có chắc muốn xóa tệp tài nguyên "%1$s" không?</string>
+    <string name="confirm_delete_asset_source">Bạn có chắc muốn xóa nguồn tài nguyên này không?</string>
+    <string name="confirm_delete_profile">Bạn có chắc muốn xóa hồ sơ này không?</string>
+    <string name="confirm_delete_proxy_chain_member">Bạn có chắc muốn xóa thành viên chuỗi này không?</string>
+    <string name="connection_info_action_copy_ip">Sao chép IP</string>
+    <string name="connection_info_action_ping">Ping</string>
+    <string name="connection_info_action_share">Chia sẻ</string>
+    <string name="connection_info_download">Tải xuống</string>
+    <string name="connection_info_ip">IP ngoài</string>
+    <string name="connection_info_ip_copied">Đã sao chép IP vào clipboard</string>
+    <string name="connection_info_isp">ISP</string>
+    <string name="connection_info_loading">Đang phát hiện…</string>
+    <string name="connection_info_location">Vị trí</string>
+    <string name="connection_info_speed">Tốc độ</string>
+    <string name="connection_info_title">Thông tin kết nối</string>
+    <string name="connection_info_upload">Tải lên</string>
+    <string name="expand_group">Mở rộng nhóm</string>
+    <string name="menu_item_delete">Xóa</string>
+    <string name="menu_item_edit">Sửa</string>
+    <string name="menu_item_import_config_manually_olcrtc">Thêm [olcRTC]</string>
+    <string name="menu_item_select_russian_apps">Chọn ứng dụng Nga</string>
+    <string name="menu_item_share">Chia sẻ</string>
+    <string name="olcrtc_hint_client_id">UUID tự động tạo nếu để trống</string>
+    <string name="olcrtc_hint_server_url">meet.egovm.ru</string>
+    <string name="olcrtc_lab_carrier">Nhà mạng (nhà cung cấp xác thực)</string>
+    <string name="olcrtc_lab_client_id">ID máy khách (mã định danh thiết bị)</string>
+    <string name="olcrtc_lab_engine">Tham số truyền tải (key=value&amp;...)</string>
+    <string name="olcrtc_lab_key_hex">Khóa mã hóa (64 ký tự hex)</string>
+    <string name="olcrtc_lab_room_id">ID phòng</string>
+    <string name="olcrtc_lab_server_url">URL máy chủ (host[:port] cho jitsi/telemost)</string>
+    <string name="olcrtc_lab_transport">Truyền tải</string>
+    <string name="routing_settings_outbound_tag_hint">proxy / direct / block / &lt;remarks&gt;</string>
+    <string name="server_lab_browser_dialer">Bật Browser Dialer</string>
+    <string name="server_lab_browser_dialer_tip">Chỉ hỗ trợ outbound xhttp (packet-up) và ws; các cài đặt liên quan đến TLS có thể bị bỏ qua hoặc xung đột</string>
+    <string name="sub_setting_custom_headers">Tiêu đề HTTP tùy chỉnh</string>
+    <string name="sub_setting_custom_headers_hint">Tên: giá trị (mỗi dòng một tiêu đề)</string>
+    <string name="sub_setting_hwid">HWID (ID thiết bị)</string>
+    <string name="sub_setting_hwid_generate">Tạo</string>
+    <string name="sub_setting_hwid_validation">HWID phải dài 10-64 ký tự gồm a-z, A-Z, 0-9, =, -</string>
+    <string name="summary_app_fork">Nhánh v2rayNG bởi venterum</string>
+    <string name="summary_app_icon">Chọn giao diện Veil trên màn hình chính</string>
+    <string name="summary_pref_add_to_telegram">Thêm proxy SOCKS5 cục bộ vào Telegram</string>
+    <string name="summary_pref_auto_test_after_update_subscription">Kiểm tra tự động mất nhiều thời gian. Nếu bật, tác vụ sẽ chạy nền; nếu không, sẽ chạy trên trang hiện tại.</string>
+    <string name="summary_pref_dynamic_color">Sử dụng màu Material You từ hình nền hệ thống (Android 12+)</string>
+    <string name="summary_pref_google_sans">Sử dụng phông Google Sans Flex đi kèm thay vì phông mặc định của thiết bị. Chỉ khả dụng khi ngôn ngữ ứng dụng là tiếng Anh.</string>
+    <string name="summary_pref_olcrtc_dns">Để trống để dùng DNS của nhà cung cấp</string>
+    <string name="summary_pref_olcrtc_dns_auto">DNS nhà cung cấp (tự động)</string>
+    <string name="summary_pref_server_card_style">Thẻ gọn với menu mở rộng. Tắt để dùng thẻ cổ điển với các nút hành động.</string>
+    <string name="summary_pref_server_search_button">Hiển thị biểu tượng tìm kiếm trên thanh công cụ danh sách máy chủ. Tìm kiếm vẫn có trong menu mở rộng.</string>
+    <string name="summary_pref_socks_generate_credentials">Tạo tên người dùng và mật khẩu ngẫu nhiên</string>
+    <string name="summary_pref_speed_lock_screen">Giữ cập nhật trực tiếp hiển thị trên màn hình khóa thay vì ẩn nội dung.</string>
+    <string name="summary_pref_speed_status_bar_live">Hiển thị tốc độ hiện tại dưới dạng cập nhật trực tiếp trên thanh trạng thái và bảng thông báo (Android 16+).</string>
+    <string name="summary_pref_speed_toolbar_enabled">Hiển thị tốc độ tải lên/xuống hiện tại trên thanh công cụ dưới cùng.</string>
+    <string name="summary_root_lan_sharing">Định tuyến thiết bị điểm phát Wi-Fi và USB qua VPN</string>
+    <string name="summary_root_mode_enabled">Bật proxy minh bạch cấp thấp qua quyền root. Chế độ này bỏ qua VPN hệ thống Android tiêu chuẩn để trực tiếp chiếm toàn bộ lưu lượng mạng. Khi bật, chế độ thường, định tuyến theo ứng dụng và các cài đặt VPN liên quan sẽ hoàn toàn vô hiệu.</string>
+    <string name="summary_scan_qrcode">Nhấp vào màn hình để mở camera quét</string>
+    <string name="title_app_icon">Biểu tượng ứng dụng</string>
+    <string name="title_drawer_section_main">Chung</string>
+    <string name="title_drawer_section_more">Thêm</string>
+    <string name="title_expire">Hết hạn: %1$s</string>
+    <string name="title_hwid_rejected">Đã đạt giới hạn thiết bị HWID cho %d gói đăng ký</string>
+    <string name="title_kill_app">Đóng ứng dụng</string>
+    <string name="title_mode_settings">Cài đặt chế độ</string>
+    <string name="title_original_repo">Kho lưu trữ v2rayNG gốc</string>
+    <string name="title_pref_add_to_telegram">Thêm vào Telegram</string>
+    <string name="title_pref_auto_test_after_update_subscription">Tự động kiểm tra sau khi cập nhật gói đăng ký</string>
+    <string name="title_pref_dynamic_color">Màu động</string>
+    <string name="title_pref_fragment_maxsplit">Phân mảnh tối đa</string>
+    <string name="title_pref_google_sans">Dùng Google Sans</string>
+    <string name="title_pref_olcrtc_dns">DNS olcRTC (ip:port)</string>
+    <string name="title_pref_server_card_style">Kiểu máy chủ gọn</string>
+    <string name="title_pref_server_search_button">Hiển thị nút tìm kiếm</string>
+    <string name="title_pref_socks_generate_credentials">Tạo thông tin xác thực ngẫu nhiên</string>
+    <string name="title_pref_speed_lock_screen">Hiển thị trên màn hình khóa</string>
+    <string name="title_pref_speed_status_bar_live">Dùng cập nhật trực tiếp</string>
+    <string name="title_pref_speed_toolbar_enabled">Hiển thị tốc độ trên thanh công cụ</string>
+    <string name="title_root_lan_sharing">Chia sẻ LAN / tethers (Người dùng Root)</string>
+    <string name="title_root_mode_enabled">Đã bật chế độ root (Người dùng Root)</string>
+    <string name="title_support_url">Hỗ trợ</string>
+    <string name="title_traffic">Lưu lượng</string>
+    <string name="title_tun_disabled">TUN đã tắt</string>
+    <string name="title_tun_enabled">TUN đã bật</string>
+    <string name="title_web_page_url">Trang web</string>
+    <string name="toast_allow_insecure_deprecated">CẢNH BÁO: Bỏ qua xác minh chứng chỉ "allowInsecure" sẽ bị vô hiệu hóa vào tháng 8/2026. Vui lòng sử dụng dấu vân tay chứng chỉ càng sớm càng tốt.</string>
+    <string name="toast_root_required">Cần quyền root cho tính năng này</string>
+    <string name="toast_socks_credentials_generated">Đã tạo thông tin xác thực ngẫu nhiên</string>
+    <string name="toggle_tun_off">Tắt TUN</string>
+    <string name="toggle_tun_on">Bật TUN</string>
+    <string name="update_auto_check">Tự động kiểm tra cập nhật</string>
+    <string name="update_auto_check_summary">Kiểm tra phiên bản mới khi khởi động ứng dụng</string>
+    <string name="update_check_failed">Kiểm tra thất bại</string>
+    <string name="update_current_version">Phiên bản hiện tại</string>
+    <string name="update_release_notes">Ghi chú phát hành</string>
+    <string-array name="browser_dialer_mode">
+        <item>Tắt</item>
+        <item>OkHttp</item>
+        <item>WebView</item>
+    </string-array>
+    <string-array name="preset_rulesets">
+        <item>Danh sách trắng Trung Quốc</item>
+        <item>Danh sách đen Trung Quốc</item>
+        <item>Toàn cầu</item>
+        <item>Danh sách trắng Iran</item>
+        <item>Danh sách trắng Nga</item>
+    </string-array>
 </resources>

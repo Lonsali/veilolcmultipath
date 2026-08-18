@@ -434,27 +434,174 @@
         <item>داكن</item>
     </string-array>
 
-    <string-array name="vpn_bypass_lan">
-        <item>Follow config</item>
-        <item>Bypass</item>
-        <item>Not Bypass</item>
+        <string-array name="vpn_bypass_lan">
+        <item>متابعة الإعداد</item>
+        <item>تجاوز</item>
+        <item>لا تجاوز</item>
     </string-array>
 
-    <string-array name="outbound_domain_resolve_method">
-        <item>Do not resolve</item>
-        <item>Resolve and add to DNS Hosts</item>
-        <item>Resolve and replace domain</item>
+        <string-array name="outbound_domain_resolve_method">
+        <item>عدم الحل</item>
+        <item>الحل والإضافة إلى DNS Hosts</item>
+        <item>الحل واستبدال النطاق</item>
     </string-array>
-    <string-array name="policy_group_type">
-        <item>Least Ping</item>
-        <item>Least Load</item>
-        <item>Random</item>
-        <item>Round Robin</item>
+        <string-array name="policy_group_type">
+        <item>أقل بينغ</item>
+        <item>أقل تحميل</item>
+        <item>عشوائي</item>
+        <item>تناوب</item>
     </string-array>
 
-    <string-array name="config_backup_options">
-        <item>Local</item>
+        <string-array name="config_backup_options">
+        <item>محلي</item>
         <item>WebDAV</item>
     </string-array>
 
+    <string name="about_copied_to_clipboard">تم النسخ إلى الحافظة</string>
+    <string name="about_logo_description">شعار Veil</string>
+    <string name="about_section_connect">تواصل</string>
+    <string name="about_section_legal">قانوني</string>
+    <string name="about_section_update">التحديث</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_delete">حذف</string>
+    <string name="add_config_clipboard">الحافظة</string>
+    <string name="add_config_create_section">إنشاء يدويًا</string>
+    <string name="add_config_file">ملف</string>
+    <string name="add_config_http">HTTP</string>
+    <string name="add_config_hysteria2">Hysteria2</string>
+    <string name="add_config_import_section">استيراد</string>
+    <string name="add_config_olcrtc">olcRTC</string>
+    <string name="add_config_policy_group">مجموعة السياسات</string>
+    <string name="add_config_policy_group_caption">موازنة أو تجاوز الفشل بين الخوادم</string>
+    <string name="add_config_protocol_section">بروتوكول الخادم</string>
+    <string name="add_config_proxy_chain">سلسلة بروكسي</string>
+    <string name="add_config_proxy_chain_caption">التوجيه عبر خوادم متعددة</string>
+    <string name="add_config_qr">رمز QR</string>
+    <string name="add_config_shadowsocks">Shadowsocks</string>
+    <string name="add_config_socks">SOCKS</string>
+    <string name="add_config_subtitle">استيراد إعداد أو إنشاؤه يدويًا</string>
+    <string name="add_config_trojan">Trojan</string>
+    <string name="add_config_vless">VLESS</string>
+    <string name="add_config_vmess">VMess</string>
+    <string name="add_config_wireguard">WireGuard</string>
+    <string name="app_icon_default">الكلاسيكي</string>
+    <string name="app_icon_default_desc">المظهر الأصلي لـ Veil</string>
+    <string name="app_icon_summer">الصيف</string>
+    <string name="app_icon_summer_desc">مشرق ودافئ</string>
+    <string name="app_icon_wink">غمزة</string>
+    <string name="app_icon_wink_desc">مرح ومرِح</string>
+    <string name="app_name">Veil</string>
+    <string name="app_picker_unknown_app">تطبيق غير معروف (UID غير محدد)</string>
+    <string name="app_widget_action_connect">اتصال</string>
+    <string name="app_widget_action_disconnect">قطع الاتصال</string>
+    <string name="app_widget_action_reload">إعادة الاتصال</string>
+    <string name="app_widget_description">تشغيل أو إيقاف Veil من الشاشة الرئيسية</string>
+    <string name="app_widget_status_connected">محمي</string>
+    <string name="app_widget_status_disconnected">جاهز</string>
+    <string name="collapse_group">طي المجموعة</string>
+    <string name="confirm_delete_asset_file">هل أنت متأكد من حذف ملف المورد "%1$s"؟</string>
+    <string name="confirm_delete_asset_source">هل أنت متأكد من حذف مصدر المورد هذا؟</string>
+    <string name="confirm_delete_profile">هل أنت متأكد من حذف هذا الملف الشخصي؟</string>
+    <string name="confirm_delete_proxy_chain_member">هل أنت متأكد من حذف عضو السلسلة هذا؟</string>
+    <string name="connection_info_action_copy_ip">نسخ IP</string>
+    <string name="connection_info_action_ping">بينغ</string>
+    <string name="connection_info_action_share">مشاركة</string>
+    <string name="connection_info_download">تنزيل</string>
+    <string name="connection_info_ip">IP الخارجي</string>
+    <string name="connection_info_ip_copied">تم نسخ IP إلى الحافظة</string>
+    <string name="connection_info_isp">مزود الخدمة</string>
+    <string name="connection_info_loading">جارٍ الكشف…</string>
+    <string name="connection_info_location">الموقع</string>
+    <string name="connection_info_speed">السرعة</string>
+    <string name="connection_info_title">معلومات الاتصال</string>
+    <string name="connection_info_upload">رفع</string>
+    <string name="expand_group">توسيع المجموعة</string>
+    <string name="menu_item_delete">حذف</string>
+    <string name="menu_item_edit">تعديل</string>
+    <string name="menu_item_import_config_manually_olcrtc">إضافة [olcRTC]</string>
+    <string name="menu_item_select_russian_apps">تحديد التطبيقات الروسية</string>
+    <string name="menu_item_share">مشاركة</string>
+    <string name="olcrtc_hint_client_id">معرّف UUID يتم إنشاؤه تلقائيًا إذا كان فارغًا</string>
+    <string name="olcrtc_hint_server_url">meet.egovm.ru</string>
+    <string name="olcrtc_lab_carrier">الناقل (مزود المصادقة)</string>
+    <string name="olcrtc_lab_client_id">معرّف العميل (معرّف الجهاز)</string>
+    <string name="olcrtc_lab_engine">معلمات النقل (key=value&amp;...)</string>
+    <string name="olcrtc_lab_key_hex">مفتاح التشفير (64 حرفًا سداسيًا)</string>
+    <string name="olcrtc_lab_room_id">معرف الغرفة</string>
+    <string name="olcrtc_lab_server_url">عنوان الخادم (host[:port] لـ jitsi/telemost)</string>
+    <string name="olcrtc_lab_transport">النقل</string>
+    <string name="routing_settings_outbound_tag_hint">proxy / direct / block / &lt;remarks&gt;</string>
+    <string name="server_lab_browser_dialer">تفعيل Browser Dialer</string>
+    <string name="server_lab_browser_dialer_tip">يدعم فقط xhttp (packet-up) و ws؛ قد يتم تجاهل إعدادات TLS أو تتعارض</string>
+    <string name="sub_setting_custom_headers">رؤوس HTTP مخصصة</string>
+    <string name="sub_setting_custom_headers_hint">الاسم: القيمة (رأس واحد لكل سطر)</string>
+    <string name="sub_setting_hwid">HWID (معرف الجهاز)</string>
+    <string name="sub_setting_hwid_generate">توليد</string>
+    <string name="sub_setting_hwid_validation">يجب أن يكون HWID بطول 10-64 حرفًا من a-z, A-Z, 0-9, =, -</string>
+    <string name="summary_app_fork">فرع v2rayNG من venterum</string>
+    <string name="summary_app_icon">اختر شكل Veil على شاشتك الرئيسية</string>
+    <string name="summary_pref_add_to_telegram">إضافة بروكسي SOCKS5 المحلي إلى Telegram</string>
+    <string name="summary_pref_auto_test_after_update_subscription">يستغرق الاختبار التلقائي وقتًا طويلًا. إذا تم التفعيل، ستعمل المهمة في الخلفية؛ وإلا فستعمل على الصفحة الحالية.</string>
+    <string name="summary_pref_dynamic_color">استخدام ألوان Material You من خلفية النظام (Android 12+)</string>
+    <string name="summary_pref_google_sans">استخدام خط Google Sans Flex المدمج بدلاً من خط الجهاز الافتراضي. متاح فقط عندما تكون لغة التطبيق الإنجليزية.</string>
+    <string name="summary_pref_olcrtc_dns">اتركه فارغًا لاستخدام DNS الخاص بالمزود</string>
+    <string name="summary_pref_olcrtc_dns_auto">DNS المزود (تلقائي)</string>
+    <string name="summary_pref_server_card_style">بطاقة مضغوطة مع قائمة تجاوز. عطّل لاستخدام البطاقة الكلاسيكية مع أزرار الإجراءات.</string>
+    <string name="summary_pref_server_search_button">إظهار أيقونة البحث في شريط أدوات قائمة الخوادم. يظل البحث متاحًا في قائمة التجاوز.</string>
+    <string name="summary_pref_socks_generate_credentials">إنشاء اسم مستخدم وكلمة مرور عشوائيين</string>
+    <string name="summary_pref_speed_lock_screen">إبقاء التحديث المباشر مرئيًا على شاشة القفل بدلاً من إخفاء محتواه.</string>
+    <string name="summary_pref_speed_status_bar_live">عرض السرعة الحالية كتحديث مباشر في شريط الحالة ولوحة الإشعارات (Android 16+).</string>
+    <string name="summary_pref_speed_toolbar_enabled">عرض سرعة الرفع/التنزيل الحالية في شريط الأدوات السفلي.</string>
+    <string name="summary_root_lan_sharing">توجيه أجهزة نقطة الاتصال اللاسلكية وUSB من خلال VPN</string>
+    <string name="summary_root_mode_enabled">تمكين البروكسي الشفاف منخفض المستوى عبر صلاحيات الجذر. يتجاوز هذا الوضع VPN النظام القياسي ليتولى مباشرة كل حركة المرور. بمجرد التفعيل، يصبح الوضع العادي وتوجيه التطبيقات وإعدادات VPN ذات الصلة غير صالحة تمامًا.</string>
+    <string name="summary_scan_qrcode">انقر على الشاشة لفتح كاميرا المسح</string>
+    <string name="title_app_icon">أيقونة التطبيق</string>
+    <string name="title_drawer_section_main">عام</string>
+    <string name="title_drawer_section_more">المزيد</string>
+    <string name="title_expire">تنتهي: %1$s</string>
+    <string name="title_hwid_rejected">تم الوصول إلى حد أجهزة HWID لـ %d اشتراك</string>
+    <string name="title_kill_app">إنهاء التطبيق</string>
+    <string name="title_mode_settings">إعدادات الوضع</string>
+    <string name="title_original_repo">مستودع v2rayNG الأصلي</string>
+    <string name="title_pref_add_to_telegram">الإضافة إلى Telegram</string>
+    <string name="title_pref_auto_test_after_update_subscription">اختبار تلقائي بعد تحديث الاشتراك</string>
+    <string name="title_pref_dynamic_color">الألوان الديناميكية</string>
+    <string name="title_pref_fragment_maxsplit">أقصى تقسيم للتجزئة</string>
+    <string name="title_pref_google_sans">استخدام Google Sans</string>
+    <string name="title_pref_olcrtc_dns">DNS olcRTC (ip:port)</string>
+    <string name="title_pref_server_card_style">نمط الخادم المضغوط</string>
+    <string name="title_pref_server_search_button">إظهار زر البحث</string>
+    <string name="title_pref_socks_generate_credentials">توليد بيانات اعتماد عشوائية</string>
+    <string name="title_pref_speed_lock_screen">الإظهار على شاشة القفل</string>
+    <string name="title_pref_speed_status_bar_live">استخدام التحديثات المباشرة</string>
+    <string name="title_pref_speed_toolbar_enabled">إظهار السرعة في شريط الأدوات</string>
+    <string name="title_root_lan_sharing">مشاركة LAN/الربط (مستخدمو الجذر)</string>
+    <string name="title_root_mode_enabled">وضع الجذر مفعّل (مستخدمو الجذر)</string>
+    <string name="title_support_url">الدعم</string>
+    <string name="title_traffic">حركة المرور</string>
+    <string name="title_tun_disabled">TUN معطّل</string>
+    <string name="title_tun_enabled">TUN مفعّل</string>
+    <string name="title_web_page_url">موقع الويب</string>
+    <string name="toast_allow_insecure_deprecated">تحذير: سيتم تعطيل تخطي التحقق من الشهادة "allowInsecure" في أغسطس 2026. يرجى استخدام بصمات الشهادات في أقرب وقت. لن تكون هذه الميزة متاحة بعد انتهاء صلاحيتها.</string>
+    <string name="toast_root_required">مطلوب وصول الجذر لهذه الميزة</string>
+    <string name="toast_socks_credentials_generated">تم توليد بيانات اعتماد عشوائية</string>
+    <string name="toggle_tun_off">TUN قيد الإيقاف</string>
+    <string name="toggle_tun_on">TUN قيد التشغيل</string>
+    <string name="update_auto_check">التحقق التلقائي من التحديثات</string>
+    <string name="update_auto_check_summary">التحقق من الإصدارات الجديدة عند بدء تشغيل التطبيق</string>
+    <string name="update_check_failed">فشل التحقق</string>
+    <string name="update_current_version">الإصدار الحالي</string>
+    <string name="update_release_notes">ملاحظات الإصدار</string>
+    <string-array name="browser_dialer_mode">
+        <item>تعطيل</item>
+        <item>OkHttp</item>
+        <item>WebView</item>
+    </string-array>
+    <string-array name="preset_rulesets">
+        <item>القائمة البيضاء للصين</item>
+        <item>القائمة السوداء للصين</item>
+        <item>عالمي</item>
+        <item>القائمة البيضاء لإيران</item>
+        <item>القائمة البيضاء لروسيا</item>
+    </string-array>
 </resources>

@@ -758,6 +758,11 @@
         name="update_check_pre_release"
     >Искать предварительный выпуск</string>
     <string name="update_checking_for_update">Проверка обновления…</string>
+    <string name="update_current_version">Текущая версия</string>
+    <string name="update_auto_check">Автопроверка обновлений</string>
+    <string name="update_auto_check_summary">Проверять обновления при запуске приложения</string>
+    <string name="update_release_notes">Примечания к выпуску</string>
+    <string name="update_check_failed">Ошибка проверки</string>
 
     <string name="title_policy_group_type">Тип политики группы</string>
     <string
@@ -882,4 +887,45 @@
     <string name="title_expire">Истекает: %1$s</string>
     <string name="title_support_url">Поддержка</string>
     <string name="title_web_page_url">Сайт</string>
+    <string name="about_section_update">Обновление</string>
+    <string name="action_close">Закрыть</string>
+    <string name="action_delete">Удалить</string>
+    <string name="add_config_clipboard">Буфер обмена</string>
+    <string name="add_config_create_section">Создать вручную</string>
+    <string name="add_config_file">Файл</string>
+    <string name="add_config_http">HTTP</string>
+    <string name="add_config_hysteria2">Hysteria2</string>
+    <string name="add_config_import_section">Импорт</string>
+    <string name="add_config_olcrtc">olcRTC</string>
+    <string name="add_config_policy_group">Группа политик</string>
+    <string name="add_config_policy_group_caption">Балансировка или резервирование между серверами</string>
+    <string name="add_config_protocol_section">Протокол сервера</string>
+    <string name="add_config_proxy_chain">Прокси-цепочка</string>
+    <string name="add_config_proxy_chain_caption">Маршрутизация через несколько серверов</string>
+    <string name="add_config_qr">QR-код</string>
+    <string name="add_config_shadowsocks">Shadowsocks</string>
+    <string name="add_config_socks">SOCKS</string>
+    <string name="add_config_subtitle">Импортируйте конфиг или создайте его вручную</string>
+    <string name="add_config_trojan">Trojan</string>
+    <string name="add_config_vless">VLESS</string>
+    <string name="add_config_vmess">VMess</string>
+    <string name="add_config_wireguard">WireGuard</string>
+    <string name="app_name">Veil</string>
+    <string name="confirm_delete_asset_file">Вы уверены, что хотите удалить файл ресурса «%1$s»?</string>
+    <string name="confirm_delete_asset_source">Вы уверены, что хотите удалить этот источник ресурсов?</string>
+    <string name="confirm_delete_profile">Вы уверены, что хотите удалить этот профиль?</string>
+    <string name="confirm_delete_proxy_chain_member">Вы уверены, что хотите удалить этого участника цепочки?</string>
+    <string name="connection_info_download">Скачивание</string>
+    <string name="connection_info_loading">Определение…</string>
+    <string name="connection_info_upload">Загрузка</string>
+    <string name="routing_settings_outbound_tag_hint">proxy / direct / block / &lt;remarks&gt;</string>
+    <string name="sub_setting_custom_headers">Пользовательские HTTP-заголовки</string>
+    <string name="sub_setting_custom_headers_hint">Имя: значение (по одному заголовку в строке)</string>
+    <string name="sub_setting_hwid">HWID (идентификатор устройства)</string>
+    <string name="sub_setting_hwid_generate">Сгенерировать</string>
+    <string name="sub_setting_hwid_validation">HWID должен содержать 10-64 символа из a-z, A-Z, 0-9, =, -</string>
+    <string name="summary_pref_auto_test_after_update_subscription">Автоматическое тестирование занимает много времени. Если включено, задача будет выполняться в фоне; в противном случае — на текущей странице.</string>
+    <string name="summary_scan_qrcode">Нажмите на экран, чтобы открыть камеру для сканирования</string>
+    <string name="title_hwid_rejected">Достигнут лимит устройств HWID для %d подписки(ок)</string>
+    <string name="title_pref_auto_test_after_update_subscription">Автотест после обновления подписки</string>
 </resources>

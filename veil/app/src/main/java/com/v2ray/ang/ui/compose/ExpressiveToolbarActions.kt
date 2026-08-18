@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
@@ -104,7 +105,12 @@ fun ExpressiveToolbarActions(
     val addLabel = stringResource(R.string.menu_item_add_config)
     val searchLabel = stringResource(R.string.menu_item_search)
 
-    Box(modifier = modifier.padding(horizontal = 8.dp)) {
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,

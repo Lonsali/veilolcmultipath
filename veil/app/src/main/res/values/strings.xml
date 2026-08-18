@@ -554,6 +554,7 @@
     <string name="title_original_repo">Original v2rayNG repository</string>
     <string name="summary_app_fork">v2rayNG fork by venterum</string>
     <string name="about_section_connect">Connect</string>
+    <string name="about_section_update">Update</string>
     <string name="about_section_legal">Legal</string>
     <string name="about_copied_to_clipboard">Copied to clipboard</string>
     <string name="about_logo_description">Veil logo</string>
@@ -772,6 +773,11 @@
     <string name="update_now">Update now</string>
     <string name="update_check_pre_release">Check Pre-release</string>
     <string name="update_checking_for_update">Checking for update…</string>
+    <string name="update_current_version">Current version</string>
+    <string name="update_auto_check">Auto-check updates</string>
+    <string name="update_auto_check_summary">Check for new versions when the app starts</string>
+    <string name="update_release_notes">Release notes</string>
+    <string name="update_check_failed">Check failed</string>
 
     <string name="title_policy_group_type">Policy group type</string>
     <string

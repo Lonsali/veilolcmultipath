@@ -43,6 +43,7 @@ import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.handler.SpeedtestManager
 import com.v2ray.ang.handler.SubscriptionUpdater
+import com.v2ray.ang.handler.UpdateCheckerManager
 import com.v2ray.ang.service.CoreTunToggleService
 import com.v2ray.ang.ui.compose.AppTheme
 import com.v2ray.ang.ui.compose.ConnectionInfoSheet
@@ -171,6 +172,7 @@ class MainActivity : HelperBaseActivity() {
         setupGroupTab()
         setupViewModel()
         SubscriptionUpdater.sync()
+        UpdateCheckerManager.checkForUpdateAutomatically()
         mainViewModel.reloadServerList()
 
         checkAndRequestPermission(PermissionType.POST_NOTIFICATIONS) {

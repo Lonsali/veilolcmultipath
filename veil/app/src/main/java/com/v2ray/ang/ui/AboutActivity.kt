@@ -2,6 +2,7 @@
 
 package com.v2ray.ang.ui
 
+import android.content.Intent
 import android.webkit.WebView
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -166,6 +167,24 @@ fun AboutScreen(onBackClick: () -> Unit) {
                 )
             }
 
+            val updateItems = listOf(
+                AboutLinkItem(
+                    icon = painterResource(R.drawable.ic_check_update_24dp),
+                    title = stringResource(R.string.update_check_for_update),
+                    subtitle = null,
+                    external = false,
+                    onClick = {
+                        context.startActivity(Intent(context, CheckUpdateActivity::class.java))
+                    }
+                ),
+            )
+            ExpressiveEntrance(index = 2) {
+                AboutLinkGroup(
+                    title = stringResource(R.string.about_section_update),
+                    items = updateItems
+                )
+            }
+
             val legalItems = listOf(
                 AboutLinkItem(
                     icon = painterResource(R.drawable.license_24px),
@@ -182,14 +201,14 @@ fun AboutScreen(onBackClick: () -> Unit) {
                     onClick = { Utils.openUri(context, AppConfig.APP_PRIVACY_POLICY) }
                 ),
             )
-            ExpressiveEntrance(index = 2) {
+            ExpressiveEntrance(index = 3) {
                 AboutLinkGroup(
                     title = stringResource(R.string.about_section_legal),
                     items = legalItems
                 )
             }
 
-            ExpressiveEntrance(index = 3) {
+            ExpressiveEntrance(index = 4) {
                 AboutFooter(coreVersion = coreVersion, appId = appId)
             }
         }

@@ -440,27 +440,167 @@
         <item>রাশিয়া হোয়াইটলিস্ট</item>
     </string-array>
 
-    <string-array name="vpn_bypass_lan">
-        <item>Follow config</item>
-        <item>Bypass</item>
-        <item>Not Bypass</item>
+        <string-array name="vpn_bypass_lan">
+        <item>কনফিগ অনুসরণ করুন</item>
+        <item>বাইপাস</item>
+        <item>বাইপাস নয়</item>
     </string-array>
 
-    <string-array name="outbound_domain_resolve_method">
-        <item>Do not resolve</item>
-        <item>Resolve and add to DNS Hosts</item>
-        <item>Resolve and replace domain</item>
+        <string-array name="outbound_domain_resolve_method">
+        <item>রেজলভ করবেন না</item>
+        <item>রেজলভ করে DNS হোস্টে যোগ করুন</item>
+        <item>রেজলভ করে ডোমেইন প্রতিস্থাপন করুন</item>
     </string-array>
-    <string-array name="policy_group_type">
-        <item>Least Ping</item>
-        <item>Least Load</item>
-        <item>Random</item>
-        <item>Round Robin</item>
+        <string-array name="policy_group_type">
+        <item>সর্বনিম্ন পিং</item>
+        <item>সর্বনিম্ন লোড</item>
+        <item>এলোমেলো</item>
+        <item>রাউন্ড রবিন</item>
     </string-array>
 
-    <string-array name="config_backup_options">
-        <item>Local</item>
+        <string-array name="config_backup_options">
+        <item>লোকাল</item>
         <item>WebDAV</item>
     </string-array>
 
+    <string name="about_copied_to_clipboard">ক্লিপবোর্ডে কপি হয়েছে</string>
+    <string name="about_logo_description">Veil লোগো</string>
+    <string name="about_section_connect">সংযোগ</string>
+    <string name="about_section_legal">আইনি</string>
+    <string name="about_section_update">আপডেট</string>
+    <string name="action_close">বন্ধ করুন</string>
+    <string name="action_delete">মুছুন</string>
+    <string name="add_config_clipboard">ক্লিপবোর্ড</string>
+    <string name="add_config_create_section">ম্যানুয়ালি তৈরি করুন</string>
+    <string name="add_config_file">ফাইল</string>
+    <string name="add_config_http">HTTP</string>
+    <string name="add_config_hysteria2">Hysteria2</string>
+    <string name="add_config_import_section">ইমপোর্ট</string>
+    <string name="add_config_olcrtc">olcRTC</string>
+    <string name="add_config_policy_group">পলিসি গ্রুপ</string>
+    <string name="add_config_policy_group_caption">সার্ভারগুলোর মধ্যে ব্যালেন্স বা ফেলওভার</string>
+    <string name="add_config_protocol_section">সার্ভার প্রোটোকল</string>
+    <string name="add_config_proxy_chain">প্রক্সি চেইন</string>
+    <string name="add_config_proxy_chain_caption">একাধিক সার্ভারের মাধ্যমে রাউটিং</string>
+    <string name="add_config_qr">QR কোড</string>
+    <string name="add_config_shadowsocks">Shadowsocks</string>
+    <string name="add_config_socks">SOCKS</string>
+    <string name="add_config_subtitle">একটি কনফিগ ইমপোর্ট করুন বা ম্যানুয়ালি তৈরি করুন</string>
+    <string name="add_config_trojan">Trojan</string>
+    <string name="add_config_vless">VLESS</string>
+    <string name="add_config_vmess">VMess</string>
+    <string name="add_config_wireguard">WireGuard</string>
+    <string name="app_icon_default">ক্লাসিক</string>
+    <string name="app_icon_default_desc">Veil-এর আসল রূপ</string>
+    <string name="app_icon_summer">গ্রীষ্ম</string>
+    <string name="app_icon_summer_desc">উজ্জ্বল ও উষ্ণ</string>
+    <string name="app_icon_wink">চোখ টিপা</string>
+    <string name="app_icon_wink_desc">খেলাধুলাপূর্ণ ও চটপটে</string>
+    <string name="app_name">Veil</string>
+    <string name="app_picker_unknown_app">অজানা অ্যাপ (শনাক্ত না হওয়া UID)</string>
+    <string name="app_widget_action_connect">সংযোগ করুন</string>
+    <string name="app_widget_action_disconnect">সংযোগ বিচ্ছিন্ন করুন</string>
+    <string name="app_widget_action_reload">পুনরায় সংযোগ করুন</string>
+    <string name="app_widget_description">হোম স্ক্রিন থেকে Veil চালু/বন্ধ করুন</string>
+    <string name="app_widget_status_connected">সুরক্ষিত</string>
+    <string name="app_widget_status_disconnected">প্রস্তুত</string>
+    <string name="collapse_group">গ্রুপ ভাঁজ করুন</string>
+    <string name="confirm_delete_asset_file">আপনি কি নিশ্চিত যে "%1$s" অ্যাসেট ফাইলটি মুছবেন?</string>
+    <string name="confirm_delete_asset_source">আপনি কি নিশ্চিত যে এই অ্যাসেট উৎসটি মুছবেন?</string>
+    <string name="confirm_delete_profile">আপনি কি নিশ্চিত যে এই প্রোফাইলটি মুছবেন?</string>
+    <string name="confirm_delete_proxy_chain_member">আপনি কি নিশ্চিত যে এই চেইন সদস্যটি মুছবেন?</string>
+    <string name="connection_info_action_copy_ip">IP কপি করুন</string>
+    <string name="connection_info_action_ping">পিং</string>
+    <string name="connection_info_action_share">শেয়ার</string>
+    <string name="connection_info_download">ডাউনলোড</string>
+    <string name="connection_info_ip">বাহ্যিক IP</string>
+    <string name="connection_info_ip_copied">IP ক্লিপবোর্ডে কপি হয়েছে</string>
+    <string name="connection_info_isp">ISP</string>
+    <string name="connection_info_loading">শনাক্ত করা হচ্ছে…</string>
+    <string name="connection_info_location">অবস্থান</string>
+    <string name="connection_info_speed">গতি</string>
+    <string name="connection_info_title">সংযোগের তথ্য</string>
+    <string name="connection_info_upload">আপলোড</string>
+    <string name="expand_group">গ্রুপ প্রসারিত করুন</string>
+    <string name="menu_item_delete">মুছুন</string>
+    <string name="menu_item_edit">সম্পাদনা</string>
+    <string name="menu_item_import_config_manually_olcrtc">[olcRTC] যোগ করুন</string>
+    <string name="menu_item_select_russian_apps">রাশিয়ান অ্যাপ নির্বাচন করুন</string>
+    <string name="menu_item_share">শেয়ার</string>
+    <string name="olcrtc_hint_client_id">খালি থাকলে স্বয়ংক্রিয় UUID</string>
+    <string name="olcrtc_hint_server_url">meet.egovm.ru</string>
+    <string name="olcrtc_lab_carrier">ক্যারিয়ার (অথ প্রোভাইডার)</string>
+    <string name="olcrtc_lab_client_id">ক্লায়েন্ট আইডি (ডিভাইস শনাক্তকারী)</string>
+    <string name="olcrtc_lab_engine">ট্রান্সপোর্ট প্যারামিটার (key=value&amp;...)</string>
+    <string name="olcrtc_lab_key_hex">এনক্রিপশন কী (64 হেক্স অক্ষর)</string>
+    <string name="olcrtc_lab_room_id">রুম আইডি</string>
+    <string name="olcrtc_lab_server_url">সার্ভার URL (jitsi/telemost-এর জন্য host[:port])</string>
+    <string name="olcrtc_lab_transport">ট্রান্সপোর্ট</string>
+    <string name="routing_settings_outbound_tag_hint">proxy / direct / block / &lt;remarks&gt;</string>
+    <string name="server_lab_browser_dialer">Browser Dialer চালু করুন</string>
+    <string name="server_lab_browser_dialer_tip">শুধুমাত্র xhttp (packet-up) এবং ws আউটবাউন্ড সমর্থন করে; TLS সংক্রান্ত সেটিংস উপেক্ষিত বা দ্বন্দ্ব হতে পারে</string>
+    <string name="sub_setting_custom_headers">কাস্টম HTTP হেডার</string>
+    <string name="sub_setting_custom_headers_hint">নাম: মান (প্রতি লাইনে একটি হেডার)</string>
+    <string name="sub_setting_hwid">HWID (ডিভাইস আইডি)</string>
+    <string name="sub_setting_hwid_generate">তৈরি করুন</string>
+    <string name="sub_setting_hwid_validation">HWID অবশ্যই a-z, A-Z, 0-9, =, - এর 10-64 অক্ষর হতে হবে</string>
+    <string name="summary_app_fork">venterum-এর v2rayNG ফর্ক</string>
+    <string name="summary_app_icon">হোম স্ক্রিনে Veil-এর চেহারা বেছে নিন</string>
+    <string name="summary_pref_add_to_telegram">Telegram-এ লোকাল SOCKS5 প্রক্সি যোগ করুন</string>
+    <string name="summary_pref_auto_test_after_update_subscription">স্বয়ংক্রিয় পরীক্ষা দীর্ঘ সময় নেয়। চালু থাকলে কাজটি ব্যাকগ্রাউন্ডে চলবে; অন্যথায় বর্তমান পৃষ্ঠায় চলবে।</string>
+    <string name="summary_pref_dynamic_color">সিস্টেম ওয়ালপেপার থেকে Material You রং ব্যবহার করুন (Android 12+)</string>
+    <string name="summary_pref_google_sans">ডিভাইসের ডিফল্ট ফন্টের পরিবর্তে বান্ডল করা Google Sans Flex ব্যবহার করুন। শুধুমাত্র অ্যাপের ভাষা ইংরেজি হলে উপলব্ধ।</string>
+    <string name="summary_pref_olcrtc_dns">প্রোভাইডার DNS ব্যবহার করতে খালি রাখুন</string>
+    <string name="summary_pref_olcrtc_dns_auto">প্রোভাইডার DNS (স্বয়ংক্রিয়)</string>
+    <string name="summary_pref_server_card_style">ওভারফ্লো মেনুসহ কমপ্যাক্ট কার্ড। ক্লাসিক কার্ড ব্যবহার করতে বন্ধ করুন।</string>
+    <string name="summary_pref_server_search_button">সার্ভার তালিকার টুলবারে অনুসন্ধান আইকন দেখান। অনুসন্ধান ওভারফ্লো মেনুতেও থাকবে।</string>
+    <string name="summary_pref_socks_generate_credentials">এলোমেলো ব্যবহারকারীর নাম ও পাসওয়ার্ড তৈরি করুন</string>
+    <string name="summary_pref_speed_lock_screen">লক স্ক্রিনে লাইভ আপডেট দৃশ্যমান রাখুন, বিষয়বস্তু লুকানোর পরিবর্তে।</string>
+    <string name="summary_pref_speed_status_bar_live">স্ট্যাটাস বার ও নোটিফিকেশন শেডে বর্তমান গতি লাইভ আপডেট হিসেবে দেখান (Android 16+)।</string>
+    <string name="summary_pref_speed_toolbar_enabled">নিচের টুলবারে বর্তমান আপ/ডাউন গতি দেখান।</string>
+    <string name="summary_root_lan_sharing">ওয়াই-ফাই হটস্পট ও USB-টিথারড ডিভাইস VPN-এর মাধ্যমে রুট করুন</string>
+    <string name="summary_root_mode_enabled">রুট সুবিধার মাধ্যমে নিম্ন-স্তরের স্বচ্ছ প্রক্সি চালু করুন। এই মোডটি স্ট্যান্ডার্ড অ্যান্ড্রয়েড VPN বাইপাস করে সমস্ত নেটওয়ার্ক ট্র্যাফিক সরাসরি নিয়ন্ত্রণ নেয়। চালু করলে নিয়মিত মোড, প্রতি-অ্যাপ রাউটিং ও সংশ্লিষ্ট VPN সেটিংস সম্পূর্ণ অবৈধ হয়ে যাবে।</string>
+    <string name="summary_scan_qrcode">স্ক্যান ক্যামেরা খুলতে স্ক্রিনে ক্লিক করুন</string>
+    <string name="title_app_icon">অ্যাপ আইকন</string>
+    <string name="title_drawer_section_main">সাধারণ</string>
+    <string name="title_drawer_section_more">আরও</string>
+    <string name="title_expire">মেয়াদ শেষ: %1$s</string>
+    <string name="title_hwid_rejected">%dটি সাবস্ক্রিপশনের জন্য HWID ডিভাইস সীমা পূর্ণ হয়েছে</string>
+    <string name="title_kill_app">অ্যাপ বন্ধ করুন</string>
+    <string name="title_mode_settings">মোড সেটিংস</string>
+    <string name="title_original_repo">মূল v2rayNG রিপোজিটরি</string>
+    <string name="title_pref_add_to_telegram">Telegram-এ যোগ করুন</string>
+    <string name="title_pref_auto_test_after_update_subscription">সাবস্ক্রিপশন আপডেটের পর স্বয়ংক্রিয় পরীক্ষা</string>
+    <string name="title_pref_dynamic_color">ডায়নামিক রং</string>
+    <string name="title_pref_fragment_maxsplit">ফ্র্যাগমেন্ট সর্বোচ্চ বিভাজন</string>
+    <string name="title_pref_google_sans">Google Sans ব্যবহার করুন</string>
+    <string name="title_pref_olcrtc_dns">olcRTC DNS (ip:port)</string>
+    <string name="title_pref_server_card_style">কমপ্যাক্ট সার্ভার স্টাইল</string>
+    <string name="title_pref_server_search_button">অনুসন্ধান বোতাম দেখান</string>
+    <string name="title_pref_socks_generate_credentials">এলোমেলো ক্রেডেনশিয়াল তৈরি করুন</string>
+    <string name="title_pref_speed_lock_screen">লক স্ক্রিনে দেখান</string>
+    <string name="title_pref_speed_status_bar_live">লাইভ আপডেট ব্যবহার করুন</string>
+    <string name="title_pref_speed_toolbar_enabled">টুলবারে গতি দেখান</string>
+    <string name="title_root_lan_sharing">LAN/টিথারিং শেয়ারিং (রুট ব্যবহারকারী)</string>
+    <string name="title_root_mode_enabled">রুট মোড চালু (রুট ব্যবহারকারী)</string>
+    <string name="title_support_url">সহায়তা</string>
+    <string name="title_traffic">ট্র্যাফিক</string>
+    <string name="title_tun_disabled">TUN বন্ধ</string>
+    <string name="title_tun_enabled">TUN চালু</string>
+    <string name="title_web_page_url">ওয়েবসাইট</string>
+    <string name="toast_allow_insecure_deprecated">সতর্কতা: "allowInsecure" সার্টিফিকেট যাচাই এড়িয়ে যাওয়া আগস্ট 2026-এ বন্ধ হবে। অনুগ্রহ করে যত দ্রুত সম্ভব সার্টিফিকেট ফিঙ্গারপ্রিন্ট ব্যবহার করুন।</string>
+    <string name="toast_root_required">এই ফিচারের জন্য রুট অ্যাক্সেস প্রয়োজন</string>
+    <string name="toast_socks_credentials_generated">এলোমেলো ক্রেডেনশিয়াল তৈরি হয়েছে</string>
+    <string name="toggle_tun_off">TUN বন্ধ</string>
+    <string name="toggle_tun_on">TUN চালু</string>
+    <string name="update_auto_check">স্বয়ংক্রিয় আপডেট চেক</string>
+    <string name="update_auto_check_summary">অ্যাপ চালু হলে নতুন সংস্করণ চেক করুন</string>
+    <string name="update_check_failed">চেক ব্যর্থ</string>
+    <string name="update_current_version">বর্তমান সংস্করণ</string>
+    <string name="update_release_notes">রিলিজ নোট</string>
+    <string-array name="browser_dialer_mode">
+        <item>অক্ষম</item>
+        <item>OkHttp</item>
+        <item>WebView</item>
+    </string-array>
 </resources>
