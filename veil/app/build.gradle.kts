@@ -21,6 +21,10 @@ val signingProps = if (signingFile.exists()) {
 android {
     namespace = "com.v2ray.ang"
     compileSdk = 37
+    // Pinned here rather than injected by CI: the workflow used to splice this
+    // line in by line number, which lands in the middle of an unrelated block
+    // as soon as anything above it moves.
+    ndkVersion = "29.0.14206865"
 
     defaultConfig {
         applicationId = "com.vntrum.veil"
