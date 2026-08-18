@@ -82,6 +82,23 @@ jobs:
         gomobile init
         bash compile-libv2ray.sh
 
+    # The released libv2ray.aar carries the geo databases as AAR assets, which
+    # Gradle merges into the APK; SettingsManager.initAssets then unpacks them.
+    # An AAR built here has no assets, so without this the routing config fails
+    # to build and every profile - not just olcRTC - refuses to connect with
+    # "failed to open geoip-only-cn-private.dat".
+    - name: Download geo databases
+      run: |
+        assets="${{ github.workspace }}/veil/app/src/main/assets"
+        mkdir -p "$assets"
+        curl -fsSL -o "$assets/geoip.dat" \
+          https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip.dat
+        curl -fsSL -o "$assets/geosite.dat" \
+          https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geosite.dat
+        curl -fsSL -o "$assets/geoip-only-cn-private.dat" \
+          https://raw.githubusercontent.com/Loyalsoldier/geoip/release/geoip-only-cn-private.dat
+        ls -l "$assets"/*.dat
+
     - name: Setup Java
       uses: actions/setup-java@v5
       with:
