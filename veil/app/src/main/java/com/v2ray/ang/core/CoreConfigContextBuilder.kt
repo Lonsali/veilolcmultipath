@@ -139,39 +139,57 @@ object CoreConfigContextBuilder {
     }
 
     private fun resolvePolicyGroupProfiles(config: ProfileItem): List<ProfileItem> {
-        try {
-            val serverList = MmkvManager.decodeAllServerList()
-            return serverList
-                .asSequence()
-                .mapNotNull { id -> MmkvManager.decodeServerConfig(id) }
-                .filter { profile ->
-                    val subscriptionId = config.policyGroupSubscriptionId
-                    if (subscriptionId.isNullOrBlank()) {
-                        true
-                    } else {
-                        profile.subscriptionId == subscriptionId
-                    }
-                }
-                .filter { profile ->
-                    val filter = config.policyGroupFilter
-                    if (filter.isNullOrBlank()) {
-                        true
-                    } else {
-                        try {
-                            Regex(filter).containsMatchIn(profile.remarks)
-                        } catch (_: Exception) {
-                            profile.remarks.contains(filter)
-                        }
-                    }
-                }
-                .filter { it.server.isNotNullEmpty() }
-                .filter { Utils.isPureIpAddress(it.server!!) || Utils.isValidUrl(it.server!!) }
-                .filter { !it.configType.isComplexType() }
-                .toList()
+        return try {
+            policyGroupMembers(config).map { it.second }
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to resolve policy group profiles for '${config.remarks}'", e)
-            return listOf(config)
+            listOf(config)
         }
+    }
+
+    /**
+     * Members of a policy group, paired with the guid they are stored under.
+     *
+     * The guid is what lets a caller write something back to a member - the
+     * olcRTC transport needs it to persist the SOCKS port it allocated, since
+     * the generated outbound points at that port.
+     */
+    fun policyGroupMembers(config: ProfileItem): List<Pair<String, ProfileItem>> {
+        val serverList = MmkvManager.decodeAllServerList()
+        return serverList
+            .asSequence()
+            .mapNotNull { id -> MmkvManager.decodeServerConfig(id)?.let { id to it } }
+            .filter { (_, profile) ->
+                val subscriptionId = config.policyGroupSubscriptionId
+                if (subscriptionId.isNullOrBlank()) {
+                    true
+                } else {
+                    profile.subscriptionId == subscriptionId
+                }
+            }
+            .filter { (_, profile) ->
+                val filter = config.policyGroupFilter
+                if (filter.isNullOrBlank()) {
+                    true
+                } else {
+                    try {
+                        Regex(filter).containsMatchIn(profile.remarks)
+                    } catch (_: Exception) {
+                        profile.remarks.contains(filter)
+                    }
+                }
+            }
+            // olcRTC profiles carry no "server": the outbound is a loopback
+            // SOCKS proxy whose port is assigned when the session starts. The
+            // address checks below only make sense for profiles that dial a
+            // remote host themselves, so olcRTC is admitted ahead of them.
+            .filter { (_, profile) ->
+                profile.configType == EConfigType.OLCRTC ||
+                    (profile.server.isNotNullEmpty() &&
+                        (Utils.isPureIpAddress(profile.server!!) || Utils.isValidUrl(profile.server!!)))
+            }
+            .filter { (_, profile) -> !profile.configType.isComplexType() }
+            .toList()
     }
 
     private fun resolveProxyChainProfiles(config: ProfileItem): List<ProfileItem> {

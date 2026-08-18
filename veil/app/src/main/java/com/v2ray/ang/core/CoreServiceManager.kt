@@ -247,16 +247,8 @@ object CoreServiceManager {
 
         LogUtil.i(AppConfig.TAG, "StartCore-Manager: Starting core loop for ${config.remarks}")
 
-        if (config.configType == EConfigType.OLCRTC) {
-            LogUtil.w(AppConfig.TAG, "StartCore-Manager: OLCRTC config detected, starting olcRTC transport carrier=${config.olcrtcCarrier} transport=${config.olcrtcTransport} room=${config.olcrtcRoomId}")
-            OlcrtcManager.socketProtector = serviceControl?.get()?.let { sc ->
-                { fd -> sc.vpnProtect(fd) }
-            }
-            if (!OlcrtcManager.start(service, config)) {
-                error("Failed to start olcRTC")
-            }
-            MmkvManager.encodeServerConfig(guid, config)
-        }
+        startOlcrtcTransports(service, guid, config)
+
 
         val result = CoreConfigManager.getV2rayConfig(service, guid)
         LogUtil.d(AppConfig.TAG, result.content)
@@ -306,6 +298,57 @@ object CoreServiceManager {
         MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_SUCCESS, "")
         NotificationManager.startSpeedNotification()
         LogUtil.i(AppConfig.TAG, "StartCore-Manager: Core started successfully")
+    }
+
+    /**
+     * Bring up an olcRTC session for every olcRTC profile the selected node
+     * resolves to, and persist the SOCKS port each one was given.
+     *
+     * A policy group of olcRTC profiles is the point of this: the provider caps
+     * throughput per session, so spreading connections over a balancer only
+     * helps when every member is live on its own port. The ports must be stored
+     * before the Xray config is generated, because each olcRTC outbound is a
+     * SOCKS outbound pointing at one of them.
+     */
+    @Throws(Exception::class)
+    private fun startOlcrtcTransports(service: Service, guid: String, config: ProfileItem) {
+        val members: List<Pair<String, ProfileItem>> = when (config.configType) {
+            EConfigType.OLCRTC -> listOf(guid to config)
+            EConfigType.POLICYGROUP -> CoreConfigContextBuilder.policyGroupMembers(config)
+                .filter { (_, profile) -> profile.configType == EConfigType.OLCRTC }
+
+            else -> emptyList()
+        }
+
+        if (members.isEmpty()) return
+
+        LogUtil.i(AppConfig.TAG, "StartCore-Manager: starting ${members.size} olcRTC session(s)")
+        OlcrtcManager.socketProtector = serviceControl?.get()?.let { sc ->
+            { fd -> sc.vpnProtect(fd) }
+        }
+
+        var started = 0
+        members.forEach { (memberGuid, profile) ->
+            LogUtil.i(
+                AppConfig.TAG,
+                "StartCore-Manager: olcRTC carrier=${profile.olcrtcCarrier} transport=${profile.olcrtcTransport} room=${profile.olcrtcRoomId}"
+            )
+            if (OlcrtcManager.start(service, profile, memberGuid)) {
+                MmkvManager.encodeServerConfig(memberGuid, profile)
+                started++
+            } else {
+                // One dead room must not sink the whole group: the balancer can
+                // still work with the members that did come up.
+                LogUtil.e(AppConfig.TAG, "StartCore-Manager: olcRTC session failed for '${profile.remarks}'")
+            }
+        }
+
+        if (started == 0) {
+            error("Failed to start olcRTC")
+        }
+        if (started < members.size) {
+            LogUtil.w(AppConfig.TAG, "StartCore-Manager: only $started of ${members.size} olcRTC sessions started")
+        }
     }
 
     /**
