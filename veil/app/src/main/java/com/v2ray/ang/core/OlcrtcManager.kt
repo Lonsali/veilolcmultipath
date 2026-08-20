@@ -88,7 +88,7 @@ object OlcrtcManager {
 
         val carrier = config.olcrtcCarrier?.takeIf { it.isNotBlank() } ?: "jitsi"
         val transport = config.olcrtcTransport?.takeIf { it.isNotBlank() } ?: "datachannel"
-        val roomId = normalizeRoomURL(carrier, config.olcrtcRoomId, config.olcrtcServerUrl)
+        val roomId = runtimeRoom(config.olcrtcRoomId)
         val hadClientId = config.olcrtcClientId?.isNotBlank() == true
         val clientId = config.olcrtcClientId?.takeIf { it.isNotBlank() } ?: persistentDeviceId()
         val keyHex = config.olcrtcKeyHex ?: ""
@@ -208,7 +208,7 @@ object OlcrtcManager {
     fun ping(config: ProfileItem, timeoutSec: Int = 5): Boolean {
         val carrier = config.olcrtcCarrier?.takeIf { it.isNotBlank() } ?: "jitsi"
         val transport = config.olcrtcTransport?.takeIf { it.isNotBlank() } ?: "datachannel"
-        val roomId = normalizeRoomURL(carrier, config.olcrtcRoomId, config.olcrtcServerUrl)
+        val roomId = runtimeRoom(config.olcrtcRoomId)
         val clientId = config.olcrtcClientId?.takeIf { it.isNotBlank() } ?: persistentDeviceId()
         val keyHex = config.olcrtcKeyHex ?: ""
         val socksPort = (config.serverPort ?: AppConfig.PORT_OLCRTC_SOCKS).toLongOrNull() ?: AppConfig.PORT_OLCRTC_SOCKS.toLong()
@@ -228,7 +228,7 @@ object OlcrtcManager {
     fun check(config: ProfileItem): String {
         val carrier = config.olcrtcCarrier?.takeIf { it.isNotBlank() } ?: "jitsi"
         val transport = config.olcrtcTransport?.takeIf { it.isNotBlank() } ?: "datachannel"
-        val roomId = normalizeRoomURL(carrier, config.olcrtcRoomId, config.olcrtcServerUrl)
+        val roomId = runtimeRoom(config.olcrtcRoomId)
         val clientId = config.olcrtcClientId?.takeIf { it.isNotBlank() } ?: persistentDeviceId()
         val keyHex = config.olcrtcKeyHex ?: ""
         val socksPort = (config.serverPort ?: AppConfig.PORT_OLCRTC_SOCKS).toLongOrNull() ?: AppConfig.PORT_OLCRTC_SOCKS.toLong()
@@ -277,6 +277,22 @@ object OlcrtcManager {
         return preferred
     }
 
+    /**
+     * The room string handed to the runtime, verbatim.
+     *
+     * olcRTC seeds its binding token from this exact string (BindingToken over
+     * ChannelID, falling back to the room), and both peers must arrive at the
+     * same token or they silently discard each other's frames: the call
+     * connects, media flows, and the handshake never completes. The server
+     * takes room.id straight out of its YAML, so any rewriting here - such as
+     * expanding a bare Telemost id into a full URL - produces a different
+     * token and a session that times out waiting to become ready.
+     *
+     * [normalizeRoomURL] still exists for display, where a friendly host name
+     * is wanted and nothing depends on the exact bytes.
+     */
+    private fun runtimeRoom(roomId: String?): String = roomId?.trim().orEmpty()
+
     private fun normalizeRoomURL(carrier: String, roomId: String?, serverUrl: String?): String {
         val room = roomId ?: ""
         if (room.isEmpty()) return ""
@@ -314,9 +330,14 @@ object OlcrtcManager {
         var batchSize = 0
         engine.split("&").forEach { pair ->
             val kv = pair.split("=", limit = 2)
+            // Both spellings: the olcrtc:// URI documents vp8-fps / vp8-batch,
+            // which is what a subscription actually carries, while fps /
+            // batchSize is the older form. Reading only the latter meant a
+            // subscription's tuning was silently dropped and the transport ran
+            // at its defaults.
             when (kv.getOrNull(0)?.trim()) {
-                "fps" -> fps = kv.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
-                "batchSize" -> batchSize = kv.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+                "vp8-fps", "fps" -> fps = kv.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
+                "vp8-batch", "batchSize" -> batchSize = kv.getOrNull(1)?.trim()?.toIntOrNull() ?: 0
             }
         }
         return fps to batchSize
