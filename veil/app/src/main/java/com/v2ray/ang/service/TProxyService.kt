@@ -19,13 +19,22 @@ class TProxyService(
     private val restartCallback: () -> Unit
 ) : Tun2SocksControl {
     companion object {
+        // These must match hev-jni.c exactly. RegisterNatives resolves the whole
+        // table at load time and, since hev's "add registration result checking"
+        // commit, aborts the process when one entry does not resolve - so a
+        // wrong return type or a missing method takes the daemon down with
+        // NoSuchMethodError before anything else runs.
         @JvmStatic
         @Suppress("FunctionName")
-        private external fun TProxyStartService(configPath: String, fd: Int)
+        private external fun TProxyStartService(configPath: String, fd: Int): Boolean
 
         @JvmStatic
         @Suppress("FunctionName")
-        private external fun TProxyStopService()
+        private external fun TProxyStopService(): Boolean
+
+        @JvmStatic
+        @Suppress("FunctionName", "unused")
+        private external fun TProxyIsRunning(): Boolean
 
         @JvmStatic
         @Suppress("FunctionName")
@@ -51,7 +60,9 @@ class TProxyService(
 
         try {
 //            LogUtil.i(AppConfig.TAG, "TProxyStartService...")
-            TProxyStartService(configFile.absolutePath, vpnInterface.fd)
+            if (!TProxyStartService(configFile.absolutePath, vpnInterface.fd)) {
+                LogUtil.e(AppConfig.TAG, "HevSocks5Tunnel refused to start")
+            }
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "HevSocks5Tunnel exception: ${e.message}")
         }
@@ -103,7 +114,9 @@ class TProxyService(
     override fun stopTun2Socks() {
         try {
             LogUtil.i(AppConfig.TAG, "TProxyStopService...")
-            TProxyStopService()
+            if (!TProxyStopService()) {
+                LogUtil.w(AppConfig.TAG, "HevSocks5Tunnel was not running")
+            }
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to stop hev-socks5-tunnel", e)
         }
