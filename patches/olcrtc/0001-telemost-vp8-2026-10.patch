@@ -1,0 +1,162 @@
+From 2c46d91359c64943a0cb3d6a952ac3863f497b3d Mon Sep 17 00:00:00 2001
+From: veil-multipath <noreply@anthropic.com>
+Date: Wed, 21 Oct 2026 21:01:16 +0300
+Subject: [PATCH] vp8channel: survive Telemost keyframe throttling (2026-10)
+
+Telemost's SFU now throttles VP8 keyframes towards participants that joined
+before the sender and stops forwarding delta frames once the last keyframe is
+too old. vp8channel tagged every frame as a keyframe, and its reorder buffer
+waited for 256 newer packets before skipping a lost one, so a single dropped
+frame stalled the tunnel for tens of seconds (rtp=N frames=1, handshake
+read welcome timeout).
+
+Tag frames as VP8 interframes with a real keyframe every 500ms
+(OLC_VP8_KEYINT), skip a reorder hole after 150ms (OLC_VP8_REORDER_WAIT), and
+send an idle keepalive on every tick. Receivers never inspect the VP8 prefix,
+so the wire stays compatible with unpatched peers.
+
+Keep sending Jitsi EndpointMessage in the legacy top-level raw shape: peers
+built before #143 only decode that, while decodeRaw still accepts both.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ internal/engine/jitsi/bridge.go               |  2 +-
+ internal/transport/vp8channel/rtp_reader.go   | 12 ++++++-
+ internal/transport/vp8channel/telemost_fix.go | 36 +++++++++++++++++++
+ internal/transport/vp8channel/transport.go    |  2 ++
+ internal/transport/vp8channel/writer.go       |  3 +-
+ 5 files changed, 52 insertions(+), 3 deletions(-)
+ create mode 100644 internal/transport/vp8channel/telemost_fix.go
+
+diff --git a/internal/engine/jitsi/bridge.go b/internal/engine/jitsi/bridge.go
+index 12a1cc9..df5bf96 100644
+--- a/internal/engine/jitsi/bridge.go
++++ b/internal/engine/jitsi/bridge.go
+@@ -144,7 +144,7 @@ func (s *Session) sendBridgeFrame(to string, data []byte) {
+ 	if !s.outboundFrameCurrent(data) {
+ 		return
+ 	}
+-	if err := sendEndpointRaw(jSess, to, data); err != nil {
++	if err := jSess.BridgeSendRaw(to, data); err != nil { // legacy top-level raw: old peers only decode this shape
+ 		if s.closed.Load() {
+ 			return
+ 		}
+diff --git a/internal/transport/vp8channel/rtp_reader.go b/internal/transport/vp8channel/rtp_reader.go
+index a5c24e9..e237c47 100644
+--- a/internal/transport/vp8channel/rtp_reader.go
++++ b/internal/transport/vp8channel/rtp_reader.go
+@@ -1,6 +1,8 @@
+ package vp8channel
+ 
+ import (
++	"time"
++
+ 	"github.com/pion/rtp"
+ 	"github.com/pion/rtp/codecs"
+ 	"github.com/pion/webrtc/v4"
+@@ -47,6 +49,8 @@ type reorderBuffer struct {
+ 	free    []*rtp.Packet
+ 	nextSeq uint16
+ 	started bool
++	// holeSince is when delivery last stalled behind a missing sequence.
++	holeSince time.Time
+ }
+ 
+ func newReorderBuffer() *reorderBuffer {
+@@ -74,10 +78,16 @@ func (b *reorderBuffer) push(pkt *rtp.Packet, deliver func(*rtp.Packet)) {
+ 
+ 	// Holding a full window behind a hole means the head sequence is
+ 	// genuinely lost: skip forward to the oldest buffered packet.
+-	if len(b.pkts) > reorderWindow {
++	if len(b.pkts) > reorderWindow ||
++		(!b.holeSince.IsZero() && time.Since(b.holeSince) > reorderMaxWait) {
+ 		b.skipToOldest()
+ 	}
+ 	b.drain(deliver)
++	if len(b.pkts) == 0 {
++		b.holeSince = time.Time{}
++	} else if b.holeSince.IsZero() {
++		b.holeSince = time.Now()
++	}
+ }
+ 
+ // drain pops contiguous packets starting at nextSeq.
+diff --git a/internal/transport/vp8channel/telemost_fix.go b/internal/transport/vp8channel/telemost_fix.go
+new file mode 100644
+index 0000000..df80fd2
+--- /dev/null
++++ b/internal/transport/vp8channel/telemost_fix.go
+@@ -0,0 +1,36 @@
++package vp8channel
++
++import (
++	"os"
++	"time"
++)
++
++// Telemost (2026-10) throttles VP8 keyframes towards earlier participants and
++// drops delta frames once the last keyframe is too old. Tag frames as
++// interframes and emit a real keyframe every keyframeInterval. Receivers never
++// inspect the first epochHdrLen-16 bytes, so unpatched peers are unaffected.
++var keyframeInterval = envDuration("OLC_VP8_KEYINT", 500*time.Millisecond)
++
++// reorderMaxWait bounds how long the reorder buffer waits for a missing RTP
++// sequence before skipping it; KCP retransmits whatever was lost.
++var reorderMaxWait = envDuration("OLC_VP8_REORDER_WAIT", 150*time.Millisecond)
++
++func envDuration(name string, def time.Duration) time.Duration {
++	if d, err := time.ParseDuration(os.Getenv(name)); err == nil && d > 0 {
++		return d
++	}
++	return def
++}
++
++// tagFrameType must be called with writeMu held.
++func (p *streamTransport) tagFrameType(data []byte) {
++	if len(data) < epochHdrLen {
++		return
++	}
++	if time.Since(p.lastKeyframe) >= keyframeInterval {
++		p.lastKeyframe = time.Now()
++		data[0] &^= 0x01
++		return
++	}
++	data[0] |= 0x01
++}
+diff --git a/internal/transport/vp8channel/transport.go b/internal/transport/vp8channel/transport.go
+index bfbbd53..7a86423 100644
+--- a/internal/transport/vp8channel/transport.go
++++ b/internal/transport/vp8channel/transport.go
+@@ -101,6 +101,8 @@ type streamTransport struct {
+ 	// bulk data from per-peer pumps while writerLoop writes control frames
+ 	// and keepalives, so both paths must funnel through this lock.
+ 	writeMu sync.Mutex
++	// lastKeyframe is guarded by writeMu.
++	lastKeyframe time.Time
+ 	// sampleWriter, when set, replaces the real track.WriteSample call.
+ 	// Tests inject a writer here to observe the exact byte stream that
+ 	// reaches the track and to assert that writeSampleLocked serializes
+diff --git a/internal/transport/vp8channel/writer.go b/internal/transport/vp8channel/writer.go
+index a74324f..f5d668d 100644
+--- a/internal/transport/vp8channel/writer.go
++++ b/internal/transport/vp8channel/writer.go
+@@ -52,6 +52,7 @@ func (w *writerState) writeSample(data []byte) bool {
+ func (p *streamTransport) writeSampleLocked(data []byte) bool {
+ 	p.writeMu.Lock()
+ 	defer p.writeMu.Unlock()
++	p.tagFrameType(data)
+ 	if p.sampleWriter != nil {
+ 		return p.sampleWriter(data)
+ 	}
+@@ -141,7 +142,7 @@ func (p *streamTransport) writerLoop() {
+ 
+ 	w := &writerState{
+ 		p:                   p,
+-		keepaliveEvery:      max(int(keepaliveIdlePeriod/p.frameInterval), 1),
++		keepaliveEvery:      1,
+ 		forceKeepaliveEvery: max(int(forceKeepalivePeriod/p.frameInterval), 1),
+ 	}
+ 	defer w.releasePending()
+-- 
+2.54.0.windows.1
+

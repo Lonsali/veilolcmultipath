@@ -22,6 +22,18 @@ if [[ -z "${ANDROID_NDK_HOME:-}" ]]; then
   exit 1
 fi
 
+# Local fixes on top of the pinned olcrtc submodule. Re-running the script
+# leaves an already patched checkout alone.
+for patch in "$__dir"/patches/olcrtc/*.patch; do
+  [[ -e "$patch" ]] || continue
+  if git -C "$__dir/olcrtc" apply --reverse --check "$patch" 2>/dev/null; then
+    echo "olcrtc: $(basename "$patch") already applied"
+  else
+    git -C "$__dir/olcrtc" apply "$patch"
+    echo "olcrtc: applied $(basename "$patch")"
+  fi
+done
+
 TMPDIR=$(mktemp -d)
 cleanup() {
   rm -rf "$TMPDIR"
