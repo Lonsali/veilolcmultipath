@@ -1,0 +1,264 @@
+From 8ee1fc10e945f6d0fbdb2d1f636dbc184f1d934c Mon Sep 17 00:00:00 2001
+From: trionia <randomshifter@gmail.com>
+Date: Fri, 23 Oct 2026 17:04:32 +0300
+Subject: [PATCH] fix(crypto): give each AAD its own replay window
+
+The data and control muxconns share one KeySet, so one 64-record replay
+window covered two independently retransmitting KCP channels. Under load
+one channel could fall more than 64 counters behind the other and its
+authenticated records were dropped as replays ("record too old"),
+breaking the smux stream: small requests got through, page loads and
+downloads stalled.
+
+Key the replay cache by sender prefix and AAD so each channel gets its
+own window, and size the cache for prefix-AAD pairs. Receive side only;
+the wire format is unchanged.
+
+Squashed from openlibrecommunity/olcrtc#153 (trionia, unmerged upstream).
+---
+ internal/crypto/chacha.go      |  48 ++++++++++----
+ internal/crypto/chacha_test.go | 112 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 147 insertions(+), 13 deletions(-)
+
+diff --git a/internal/crypto/chacha.go b/internal/crypto/chacha.go
+index 1e135a7..4e5de92 100644
+--- a/internal/crypto/chacha.go
++++ b/internal/crypto/chacha.go
+@@ -30,7 +30,11 @@ const (
+ 	noncePrefixSize     = chacha20poly1305.NonceSizeX - 8
+ 	recordHeaderSize    = len(recordMagic) + 8 + noncePrefixSize
+ 	replayWindowSize    = 64
+-	maxReplaySenders    = 256
++
++	// maxReplaySenders bounds the replay cache. It counts {prefix, AAD} pairs
++	// and every sender uses two AADs (data and control), so 512 entries keep
++	// the documented capacity of 256 sender prefixes.
++	maxReplaySenders = 512
+ 
+ 	// WireOverhead is magic, counter, sender prefix, and authentication tag.
+ 	WireOverhead = recordHeaderSize + chacha20poly1305.Overhead
+@@ -100,8 +104,13 @@ type sealState struct {
+ 	counter atomic.Uint64
+ }
+ 
++type replayKey struct {
++	prefix [noncePrefixSize]byte
++	aad    uint64
++}
++
+ type replayState struct {
+-	prefix  [noncePrefixSize]byte
++	key     replayKey
+ 	highest uint64
+ 	seen    uint64
+ 	element *list.Element
+@@ -109,10 +118,25 @@ type replayState struct {
+ 
+ type replayCache struct {
+ 	mu      sync.Mutex
+-	senders map[[noncePrefixSize]byte]*replayState
++	senders map[replayKey]*replayState
+ 	lru     list.List
+ }
+ 
++// aadTag is 64-bit FNV-1a, same parameters as hash/fnv. Written out because
++// hash/fnv allocates per call and this runs once per received record.
++func aadTag(aad []byte) uint64 {
++	const (
++		offsetBasis = 14695981039346656037
++		prime       = 1099511628211
++	)
++	tag := uint64(offsetBasis)
++	for _, b := range aad {
++		tag ^= uint64(b)
++		tag *= prime
++	}
++	return tag
++}
++
+ // KeySet owns one directional sender and shared receive replay state.
+ // It is safe for concurrent use and should be reused across data, control,
+ // peer, and reconnect muxconn instances for one process role.
+@@ -167,7 +191,7 @@ func newKeySetForRole(clientKey, serverKey [chacha20poly1305.KeySize]byte, role
+ 	keys := &KeySet{
+ 		send:    sealState{aead: sendAEAD},
+ 		receive: receiveAEAD,
+-		replay:  replayCache{senders: make(map[[noncePrefixSize]byte]*replayState, maxReplaySenders)},
++		replay:  replayCache{senders: make(map[replayKey]*replayState, maxReplaySenders)},
+ 	}
+ 	if _, err := rand.Read(keys.send.prefix[:]); err != nil {
+ 		return nil, fmt.Errorf("seed sender nonce prefix: %w", err)
+@@ -251,18 +275,18 @@ func (k *KeySet) OpenInto(dst, record, aad []byte) ([]byte, error) {
+ 	if err != nil {
+ 		return nil, fmt.Errorf("open record: %w", ErrAuthentication)
+ 	}
+-	if err := k.replay.accept(prefix, counter); err != nil {
++	if err := k.replay.accept(replayKey{prefix: prefix, aad: aadTag(aad)}, counter); err != nil {
+ 		return nil, fmt.Errorf("open record: %w", err)
+ 	}
+ 	return plaintext, nil
+ }
+ 
+-func (r *replayCache) accept(prefix [noncePrefixSize]byte, counter uint64) error {
++func (r *replayCache) accept(key replayKey, counter uint64) error {
+ 	r.mu.Lock()
+ 	defer r.mu.Unlock()
+-	state := r.senders[prefix]
++	state := r.senders[key]
+ 	if state == nil {
+-		r.insert(prefix, counter)
++		r.insert(key, counter)
+ 		return nil
+ 	}
+ 	if counter > state.highest {
+@@ -289,16 +313,16 @@ func (r *replayCache) accept(prefix [noncePrefixSize]byte, counter uint64) error
+ 	return nil
+ }
+ 
+-func (r *replayCache) insert(prefix [noncePrefixSize]byte, counter uint64) {
++func (r *replayCache) insert(key replayKey, counter uint64) {
+ 	if len(r.senders) >= maxReplaySenders {
+ 		oldest := r.lru.Back()
+ 		state, ok := oldest.Value.(*replayState)
+ 		if ok {
+-			delete(r.senders, state.prefix)
++			delete(r.senders, state.key)
+ 		}
+ 		r.lru.Remove(oldest)
+ 	}
+-	state := &replayState{prefix: prefix, highest: counter, seen: 1}
++	state := &replayState{key: key, highest: counter, seen: 1}
+ 	state.element = r.lru.PushFront(state)
+-	r.senders[prefix] = state
++	r.senders[key] = state
+ }
+diff --git a/internal/crypto/chacha_test.go b/internal/crypto/chacha_test.go
+index 034f58e..e7a6d68 100644
+--- a/internal/crypto/chacha_test.go
++++ b/internal/crypto/chacha_test.go
+@@ -211,7 +211,7 @@ func TestReplayStateUsesBoundedLRU(t *testing.T) {
+ 		t.Fatalf("sender states = %d, want %d", len(server.replay.senders), maxReplaySenders)
+ 	}
+ 	var first [noncePrefixSize]byte
+-	if _, ok := server.replay.senders[first]; ok {
++	if _, ok := server.replay.senders[replayKey{prefix: first, aad: aadTag([]byte(testDataAAD))}]; ok {
+ 		t.Fatal("least-recently-used sender was not evicted")
+ 	}
+ }
+@@ -318,3 +318,113 @@ func BenchmarkRecordRoundTrip(b *testing.B) {
+ 		}
+ 	}
+ }
++
++func TestOpenKeepsIndependentWindowsPerAAD(t *testing.T) {
++	client, server := newKeyPair(t)
++	control, err := client.Seal([]byte("control"), []byte(testControlAAD))
++	if err != nil {
++		t.Fatalf("Seal(control) error = %v", err)
++	}
++	for i := range replayWindowSize * 2 {
++		data, sealErr := client.Seal([]byte("data"), []byte(testDataAAD))
++		if sealErr != nil {
++			t.Fatalf("Seal(data %d) error = %v", i, sealErr)
++		}
++		if _, openErr := server.Open(data, []byte(testDataAAD)); openErr != nil {
++			t.Fatalf("Open(data %d) error = %v", i, openErr)
++		}
++	}
++	if _, err := server.Open(control, []byte(testControlAAD)); err != nil {
++		t.Fatalf("Open(control) after %d data records error = %v", replayWindowSize*2, err)
++	}
++}
++
++// A server seals the data records for every peer from one sender prefix and one
++// counter. That is fine: the replay window lives on the receiver, and each peer
++// only ever sees its own records, in order, with counter gaps where the other
++// peers' traffic went. Gaps never trip the window; only a record older than the
++// highest one this receiver already accepted does.
++//
++// ai-generated: this test function and its doc comment.
++func TestPeersSharingSenderPrefixKeepIndependentWindows(t *testing.T) {
++	const busyRecords = replayWindowSize * 8
++	server, err := NewKeySet([]byte(testPSK), Server)
++	if err != nil {
++		t.Fatalf("NewKeySet(server) error = %v", err)
++	}
++	peerA, err := NewKeySet([]byte(testPSK), Client)
++	if err != nil {
++		t.Fatalf("NewKeySet(peer a) error = %v", err)
++	}
++	peerB, err := NewKeySet([]byte(testPSK), Client)
++	if err != nil {
++		t.Fatalf("NewKeySet(peer b) error = %v", err)
++	}
++	for round := range 10 {
++		toA, sealErr := server.Seal([]byte("a"), []byte(testDataAAD))
++		if sealErr != nil {
++			t.Fatalf("Seal(a) error = %v", sealErr)
++		}
++		for i := range busyRecords {
++			toB, sealErr := server.Seal([]byte("b"), []byte(testDataAAD))
++			if sealErr != nil {
++				t.Fatalf("Seal(b %d) error = %v", i, sealErr)
++			}
++			if _, openErr := peerB.Open(toB, []byte(testDataAAD)); openErr != nil {
++				t.Fatalf("round %d Open(b %d) error = %v", round, i, openErr)
++			}
++		}
++		if _, openErr := peerA.Open(toA, []byte(testDataAAD)); openErr != nil {
++			t.Fatalf("round %d Open(a) after %d records to b error = %v", round, busyRecords, openErr)
++		}
++	}
++}
++
++// Both planes of every peer are sealed from the server's one prefix, and each
++// peer's control records are delivered independently of its data records. Each
++// peer therefore needs one window per plane, and nothing more: the other peers'
++// records never reach it.
++//
++// ai-generated: this test function and its doc comment.
++func TestPeersKeepIndependentWindowsPerPlane(t *testing.T) {
++	const busyRecords = replayWindowSize * 4
++	server, err := NewKeySet([]byte(testPSK), Server)
++	if err != nil {
++		t.Fatalf("NewKeySet(server) error = %v", err)
++	}
++	peers := make([]*KeySet, 3)
++	for i := range peers {
++		peers[i], err = NewKeySet([]byte(testPSK), Client)
++		if err != nil {
++			t.Fatalf("NewKeySet(peer %d) error = %v", i, err)
++		}
++	}
++	for round := range 5 {
++		// Every peer's control record is sealed first, then delayed behind
++		// every peer's bulk data.
++		controls := make([][]byte, len(peers))
++		for i := range peers {
++			controls[i], err = server.Seal([]byte("pong"), []byte(testControlAAD))
++			if err != nil {
++				t.Fatalf("Seal(control %d) error = %v", i, err)
++			}
++		}
++		for i, peer := range peers {
++			for n := range busyRecords {
++				data, sealErr := server.Seal([]byte("bulk"), []byte(testDataAAD))
++				if sealErr != nil {
++					t.Fatalf("Seal(data %d/%d) error = %v", i, n, sealErr)
++				}
++				if _, openErr := peer.Open(data, []byte(testDataAAD)); openErr != nil {
++					t.Fatalf("round %d peer %d Open(data %d) error = %v", round, i, n, openErr)
++				}
++			}
++		}
++		for i, peer := range peers {
++			if _, openErr := peer.Open(controls[i], []byte(testControlAAD)); openErr != nil {
++				t.Fatalf("round %d peer %d Open(control) after %d data records error = %v",
++					round, i, busyRecords*len(peers), openErr)
++			}
++		}
++	}
++}
+-- 
+2.34.1
+
